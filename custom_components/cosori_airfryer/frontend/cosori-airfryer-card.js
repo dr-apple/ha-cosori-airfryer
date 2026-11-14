@@ -10,6 +10,7 @@
  * view (zoomed panel + basket tiles).
  */
 const BASE = new URL(".", import.meta.url).pathname; // /cosori_airfryer/
+const VER = new URL(import.meta.url).search; // ?v=<integration version>
 const COMPACT_BELOW = 640;
 
 const T = {
@@ -116,7 +117,7 @@ function panelHTML(withChips) {
   const z = (x, y) => `left:${x}%;top:${y}%`;
   return `
     <div class="wrap">
-      <img src="${BASE}airfryer.webp" alt="Cosori TwinFry">
+      <img src="${BASE}airfryer.webp${VER}" alt="Cosori TwinFry">
       <div class="disp" data-act="disp"><span class="tag" data-k="tag"></span>
         <span class="seg" data-k="temp"></span><span class="seg" data-k="time"></span></div>
       <div class="o arr" style="${z(34.9, 19.3)}" data-act="temp+"></div>
@@ -153,7 +154,7 @@ class CosoriAirfryerCard extends HTMLElement {
   }
 
   getGridOptions() {
-    return { columns: 12, rows: "auto", min_columns: 6 };
+    return { columns: "full", rows: "auto", min_columns: 6 };
   }
 
   set hass(hass) {
