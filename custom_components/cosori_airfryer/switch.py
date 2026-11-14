@@ -10,7 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from pyvesync.base_devices.fryer_base import VeSyncFryer
 
-from .coordinator import CosoriConfigEntry, CosoriCoordinator
+from .actions import default_duration_min, default_temperature
+from .coordinator import CosoriConfigEntry, CosoriCoordinator, StartSettings
 from .entity import CosoriEntity
 
 
@@ -21,12 +22,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the switches for dual-basket fryers."""
     coordinator = entry.runtime_data
-    async_add_entities(
+    entities: list[SwitchEntity] = [
         LinkSwitch(coordinator, fryer, link)
         for fryer in coordinator.fryers.values()
         if fryer.is_dual_chamber
         for link in ("sync", "match")
-    )
+    ]
+    entities.extend(PlanSwitch(coordinator, f) for f in coordinator.fryers.values())
+    async_add_entities(entities)
 
 
 class LinkSwitch(CosoriEntity, SwitchEntity):
@@ -67,3 +70,59 @@ class LinkSwitch(CosoriEntity, SwitchEntity):
         if self.settings.link == self._link:
             self.settings.link = "off"
             self.settings.notify()
+
+
+class PlanSwitch(CosoriEntity, SwitchEntity):
+    """Planned start armed. Turning it on freezes the current settings."""
+
+    _attr_translation_key = "plan"
+
+    def __init__(self, coordinator: CosoriCoordinator, fryer: VeSyncFryer) -> None:
+        """Initialize."""
+        super().__init__(coordinator, fryer, "plan")
+
+    async def async_added_to_hass(self) -> None:
+        """Follow plan changes."""
+        await super().async_added_to_hass()
+        self.settings.listeners.append(self.async_write_ha_state)
+        self.async_on_remove(
+            lambda: self.settings.listeners.remove(self.async_write_ha_state)
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """Return True while a start is planned."""
+        return self.settings.plan_armed
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Planned start time and the frozen settings."""
+        s = self.settings
+        start = self.coordinator.plan_start_time(self.fryer.cid)
+        snap = StartSettings.from_cook_dict(s.plan_snapshot or s.cook_dict())
+        attrs: dict[str, Any] = {
+            "start_time": start.isoformat() if start else None,
+            "plan_time": s.plan_at.isoformat() if s.plan_at else None,
+            "plan_type": s.plan_type,
+            "chamber": snap.chamber,
+            "link": snap.link,
+        }
+        for n, per in snap.per.items():
+            attrs[f"chamber_{n}"] = {
+                "mode": per.mode,
+                "temperature": per.temperature
+                if per.temperature is not None
+                else default_temperature(self.fryer, per.mode),
+                "duration": per.duration_min
+                if per.duration_min is not None
+                else default_duration_min(self.fryer, per.mode),
+            }
+        return attrs
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Arm the plan."""
+        self.coordinator.async_arm_plan(self.fryer.cid)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Cancel the plan."""
+        self.coordinator.async_disarm_plan(self.fryer.cid)

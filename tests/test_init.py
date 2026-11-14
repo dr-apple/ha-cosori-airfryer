@@ -234,3 +234,108 @@ async def test_setup_and_start(hass: HomeAssistant) -> None:
         assert body["payload"]["data"] == {"chamber": 4}
 
         assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_planned_start(hass: HomeAssistant) -> None:
+    """Plan 'finish at' with frozen settings; it fires once at the right time."""
+    from datetime import timedelta
+
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    from homeassistant.util import dt as dt_util
+
+    hass.config.language = "de"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"username": "a@b.c", "password": "x", "country_code": "DE"},
+        unique_id="a@b.c",
+    )
+    entry.add_to_hass(hass)
+    idle = {**STATUS, "statusList": [chamber(1, "standby"), chamber(2, "standby")], "workChamber": 0}
+    api = AsyncMock(return_value=response(idle))
+    with (
+        patch.object(VeSync, "login", AsyncMock(return_value=True)),
+        patch.object(VeSync, "get_devices", _get_devices),
+        patch.object(VeSync, "async_call_api", api),
+        patch.object(VeSync, "account_id", new_callable=PropertyMock, return_value="42"),
+        patch.object(VeSync, "token", new_callable=PropertyMock, return_value="tok"),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        ids = sorted(s.entity_id for s in hass.states.async_all() if "plan" in s.entity_id or "geplant" in s.entity_id or "zeit" in s.entity_id)
+        print("PLAN IDS", ids)
+
+        # Korb 2, Backen 160 °C 30 min, finish in 2 h.
+        for svc, dom, data in (
+            ("select_option", "select", {"entity_id": "select.airfryer_korb", "option": "chamber_2"}),
+            ("select_option", "select", {"entity_id": "select.airfryer_programm", "option": "bake"}),
+            ("set_value", "number", {"entity_id": "number.airfryer_temperatur", "value": 160}),
+            ("set_value", "number", {"entity_id": "number.airfryer_garzeit", "value": 30}),
+        ):
+            await hass.services.async_call(dom, svc, data, blocking=True)
+        finish = (dt_util.now() + timedelta(hours=2)).replace(second=0, microsecond=0)
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": "select.airfryer_geplante_zeit_ist", "option": "finish"}, blocking=True,
+        )
+        await hass.services.async_call(
+            "datetime", "set_value",
+            {"entity_id": "datetime.airfryer_geplante_zeit", "datetime": finish}, blocking=True,
+        )
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": "switch.airfryer_zeitplan_aktiv"}, blocking=True,
+        )
+        start = dt_util.parse_datetime(hass.states.get("sensor.airfryer_geplanter_start").state)
+        assert start == finish - timedelta(minutes=30)
+        attrs = hass.states.get("switch.airfryer_zeitplan_aktiv").attributes
+        assert attrs["chamber"] == "chamber_2" and attrs["chamber_2"]["mode"] == "bake"
+
+        # Later edits do not change the frozen plan.
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": "select.airfryer_programm", "option": "grill"}, blocking=True,
+        )
+        api.reset_mock()
+        async_fire_time_changed(hass, start - timedelta(minutes=1))
+        await hass.async_block_till_done()
+        assert not any(_body_any(c).get("payload", {}).get("method") == "startMultiCook" for c in api.call_args_list)
+
+        async_fire_time_changed(hass, start + timedelta(seconds=1))
+        await hass.async_block_till_done()
+        starts = [_body_any(c) for c in api.call_args_list if _body_any(c).get("payload", {}).get("method") == "startMultiCook"]
+        assert len(starts) == 1
+        data = starts[0]["payload"]["data"]
+        print("PLANNED START", data)
+        assert data["workChamber"] == 2 and data["cookConfigs"][0]["mode"] == "Bake"
+        assert data["cookConfigs"][0]["cookTemp"] == 160 and data["cookConfigs"][0]["cookSetTime"] == 1800
+        assert hass.states.get("switch.airfryer_zeitplan_aktiv").state == "off"
+        assert hass.states.get("sensor.airfryer_geplanter_start").state == "unknown"
+
+        # A plan in the past is refused.
+        import pytest
+
+        from homeassistant.exceptions import ServiceValidationError
+
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": "select.airfryer_geplante_zeit_ist", "option": "start"}, blocking=True,
+        )
+        await hass.services.async_call(
+            "datetime", "set_value",
+            {"entity_id": "datetime.airfryer_geplante_zeit", "datetime": dt_util.now() - timedelta(hours=1)},
+            blocking=True,
+        )
+        with pytest.raises(ServiceValidationError):
+            await hass.services.async_call(
+                "switch", "turn_on", {"entity_id": "switch.airfryer_zeitplan_aktiv"}, blocking=True,
+            )
+        assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+def _body_any(call) -> dict:
+    body = call.kwargs.get("json_object")
+    if body is None and len(call.args) > 2:
+        body = call.args[2]
+    if body is None:
+        return {}
+    return body if isinstance(body, dict) else body.to_dict()

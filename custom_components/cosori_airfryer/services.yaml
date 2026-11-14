@@ -61,3 +61,31 @@ end_cooking:
             - chamber_2
             - whole
             - both
+
+schedule_start:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: cosori_airfryer
+    time:
+      required: true
+      selector:
+        datetime:
+    type:
+      default: start
+      selector:
+        select:
+          translation_key: plan_type
+          options:
+            - start
+            - finish
+
+cancel_schedule:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: cosori_airfryer

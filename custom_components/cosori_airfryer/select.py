@@ -31,6 +31,7 @@ async def async_setup_entry(
         if fryer.is_dual_chamber:
             entities.append(ChamberSelect(coordinator, fryer))
         entities.append(ModeSelect(coordinator, fryer))
+        entities.append(PlanTypeSelect(coordinator, fryer))
     async_add_entities(entities)
 
 
@@ -98,3 +99,33 @@ class ModeSelect(_SettingSelect):
         cur.temperature = default_temperature(self.fryer, option)
         cur.duration_min = default_duration_min(self.fryer, option)
         self.settings.notify()
+
+
+class PlanTypeSelect(_SettingSelect):
+    """Whether the plan time is the start or the finish time."""
+
+    _attr_translation_key = "plan_type"
+    _attr_options = ["start", "finish"]
+
+    def __init__(self, coordinator: CosoriCoordinator, fryer: VeSyncFryer) -> None:
+        """Initialize."""
+        super().__init__(coordinator, fryer, "plan_type")
+
+    @property
+    def current_option(self) -> str:
+        """Return the plan type."""
+        return self.settings.plan_type
+
+    async def async_select_option(self, option: str) -> None:
+        """Set the plan type; an armed plan is rescheduled with it."""
+        s = self.settings
+        old = s.plan_type
+        s.plan_type = option
+        if s.plan_armed:
+            try:
+                self.coordinator.async_arm_plan(self.fryer.cid)
+            except Exception:
+                s.plan_type = old
+                raise
+            return
+        s.notify()

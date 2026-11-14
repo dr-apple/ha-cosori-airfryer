@@ -26,6 +26,10 @@ const T = {
     basket: "Korb", done: "fertig", offline: "Offline", confirmStart: "Nochmal tippen zum Starten",
     confirmEnd: "Nochmal tippen zum Beenden", confirmAll: "Nochmal tippen: alles aus", close: "Schließen",
     hint: "Tippen zum Bedienen", noLinkWhole: "Sync/Match nur mit zwei Körben",
+    plan: "Zeitplan", planTitle: "Start planen", planStartAt: "Start um", planFinishAt: "Fertig um",
+    planDo: "Planen", planCancel: "Zeitplan löschen", planStarts: "Startet", planFinishes: "fertig ca.",
+    planWill: "Wird gestartet mit", planArmed: "Geplant", planHint: "Einstellungen werden beim Planen übernommen.",
+    days: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"], today: "heute", tomorrow: "morgen", whole2: "Ganzer Korb",
   },
   en: {
     modes: { airfry: "AIR FRY", roast: "ROAST", bake: "BAKE", grill: "GRILL", reheat: "REHEAT", dry: "DRY" },
@@ -39,6 +43,10 @@ const T = {
     basket: "Basket", done: "done", offline: "Offline", confirmStart: "Tap again to start",
     confirmEnd: "Tap again to stop", confirmAll: "Tap again: all off", close: "Close",
     hint: "Tap to control", noLinkWhole: "Sync/Match needs two baskets",
+    plan: "Schedule", planTitle: "Plan a start", planStartAt: "Start at", planFinishAt: "Finish at",
+    planDo: "Schedule", planCancel: "Delete schedule", planStarts: "Starts", planFinishes: "done approx.",
+    planWill: "Will start with", planArmed: "Scheduled", planHint: "Settings are frozen when scheduling.",
+    days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], today: "today", tomorrow: "tomorrow", whole2: "Whole basket",
   },
 };
 
@@ -108,6 +116,26 @@ const CSS = `
   .chips .chip { font-size:15px; }
   .x { position:absolute; right:10px; top:10px; z-index:6; width:34px; height:34px; border-radius:50%; border:none; background:rgba(255,255,255,.12);
        color:#fff; font:600 18px/34px system-ui; cursor:pointer; }
+  .planbtn { position:absolute; left:50%; top:58.5%; transform:translate(-50%,-50%); cursor:pointer; white-space:nowrap;
+             font:600 1.35cqw/1 system-ui,-apple-system,sans-serif; color:#e8e8ea; background:rgba(20,20,22,.55);
+             border:.12cqw solid rgba(255,255,255,.18); border-radius:3cqw; padding:.8cqw 1.6cqw; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .planbtn.on { color:#1d1d1f; background:#ff9a3c; border-color:#ff9a3c; box-shadow:0 0 1.4cqw rgba(255,140,40,.7); }
+  .sheet .planbtn { position:static; transform:none; display:block; width:100%; margin-top:10px; font-size:15px; padding:12px; border-radius:12px; text-align:center; box-sizing:border-box; }
+  .plan { color:#f1f1f3; font:500 15px/1.4 system-ui,-apple-system,sans-serif; }
+  .plan h2 { margin:0 44px 12px 0; font-size:20px; }
+  .seg2 { display:flex; background:rgba(255,255,255,.08); border-radius:10px; padding:3px; margin-bottom:12px; }
+  .seg2 button { flex:1; border:none; background:none; color:#d8d8dc; font:600 15px system-ui; padding:9px; border-radius:8px; cursor:pointer; }
+  .seg2 button.on { background:#ff9a3c; color:#1d1d1f; }
+  .plan input { width:100%; box-sizing:border-box; font:600 20px system-ui; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.2);
+                background:#1f1f22; color:#fff; color-scheme:dark; }
+  .plan .res { margin:10px 0; color:#ffb36b; font-weight:600; }
+  .plan .will { background:rgba(255,255,255,.05); border-radius:10px; padding:10px 12px; font-size:14px; color:#c9c9ce; }
+  .plan .will b { color:#f1f1f3; }
+  .plan .muted { color:#8e8e93; font-size:13px; margin-top:6px; }
+  .plan .row { display:flex; gap:10px; margin-top:14px; }
+  .plan .row button { flex:1; border:none; border-radius:12px; padding:13px; font:700 16px system-ui; cursor:pointer; }
+  .plan .go { background:#ff9a3c; color:#1d1d1f; }
+  .plan .del { background:rgba(255,80,60,.18); color:#ff8a7a; }
   @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.3 } }
   @keyframes glow { 0%,100% { box-shadow:0 0 .4cqw rgba(255,140,40,.4) } 50% { box-shadow:0 0 1.4cqw rgba(255,140,40,.95) } }
   @keyframes armed { from { box-shadow:0 0 .4cqw rgba(255,80,60,.5) } to { box-shadow:0 0 1.8cqw rgba(255,80,60,1) } }
@@ -134,7 +162,8 @@ function panelHTML(withChips) {
       <div class="o pill" data-k="p-chamber_2" style="${z(70.9, 32.9)}" data-act="zone:chamber_2"></div>
       ${withChips ? `<div class="chip" data-k="c1" style="left:21.5%" data-act="info:1"></div>
       <div class="chip" data-k="c2" style="left:78.5%" data-act="info:2"></div>
-      <div class="hint hidden" data-k="hint"></div>` : ""}
+      <div class="hint hidden" data-k="hint"></div>
+      <div class="planbtn" data-k="planbtn" data-act="plan"></div>` : ""}
     </div>`;
 }
 
@@ -254,6 +283,7 @@ class CosoriAirfryerCard extends HTMLElement {
         <button class="x" title="${this._t.close}">✕</button>
         <div class="zoom">${panelHTML(false)}</div>
         <div class="chips"><div class="chip" data-k="c1" data-act="info:1"></div><div class="chip" data-k="c2" data-act="info:2"></div></div>
+        <div class="planbtn" data-k="planbtn" data-act="plan"></div>
         <div class="toast"></div>
       </div></div>`;
     sr.querySelector(".pop").addEventListener("click", (ev) => {
@@ -278,7 +308,7 @@ class CosoriAirfryerCard extends HTMLElement {
   _roots() {
     const r = [this._card];
     if (this._pop) r.push(this._pop.shadowRoot.querySelector(".sheet"));
-    return r.filter(Boolean);
+    return r.filter((x) => x && x.querySelector(".wrap"));
   }
 
   _toast(msg) {
@@ -319,6 +349,117 @@ class CosoriAirfryerCard extends HTMLElement {
   _cfg(n) {
     const a = this._st("start")?.attributes || {};
     return this._link() === "match" ? a.chamber_1 : a[`chamber_${n}`];
+  }
+
+  _when(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const t = this._t;
+    const now = new Date();
+    const day0 = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const diff = Math.round((day0(d) - day0(now)) / 86400000);
+    const hm = d.toLocaleTimeString(this._hass.locale?.language || "de", { hour: "2-digit", minute: "2-digit" });
+    const day = diff === 0 ? t.today : diff === 1 ? t.tomorrow : `${t.days[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`;
+    return `${day} ${hm}`;
+  }
+
+  _localInput(d) {
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  _describe(a) {
+    const t = this._t;
+    if (!a) return "";
+    const line = (n, c) => c ? `<b>${n}</b>: ${t.modesLong[c.mode] || c.mode} · ${c.temperature}°C · ${c.duration} min` : "";
+    if (a.chamber === "whole") return line(t.whole2, a.chamber_1);
+    if (a.link === "match") return `${line(`${t.basket} 1 + 2`, a.chamber_1)} <span class="muted">(${t.match})</span>`;
+    if (a.link === "sync") return `${line(`${t.basket} 1`, a.chamber_1)}<br>${line(`${t.basket} 2`, a.chamber_2)} <span class="muted">(${t.sync})</span>`;
+    const n = a.chamber === "chamber_2" ? 2 : 1;
+    return line(`${t.basket} ${n}`, a[`chamber_${n}`]);
+  }
+
+  _minutes(a) {
+    if (!a) return 0;
+    if (a.chamber === "whole" || a.link === "match") return a.chamber_1?.duration || 0;
+    if (a.link === "sync") return Math.max(a.chamber_1?.duration || 0, a.chamber_2?.duration || 0);
+    return a[a.chamber === "chamber_2" ? "chamber_2" : "chamber_1"]?.duration || 0;
+  }
+
+  _openPlan() {
+    const t = this._t;
+    this._closePopup();
+    const armed = this._val("plan") === "on";
+    const planAttrs = this._st("plan")?.attributes || {};
+    const cur = this._st("start")?.attributes || {};
+    let type = this._val("plan_type") || "start";
+    const stored = this._val("plan_time");
+    let when = stored && !["unknown", "unavailable"].includes(stored) ? new Date(stored) : null;
+    if (!when || (!armed && when < new Date())) {
+      when = new Date();
+      when.setHours(9, 0, 0, 0);
+      if (when <= new Date()) when.setDate(when.getDate() + 1);
+    }
+    const host = document.createElement("div");
+    host.className = "cosori-airfryer-popup";
+    const sr = host.attachShadow({ mode: "open" });
+    sr.innerHTML = `<style>${CSS}</style>
+      <div class="pop"><div class="sheet plan" style="width:min(460px,100%)">
+        <button class="x" title="${t.close}">✕</button>
+        <h2>⏰ ${t.planTitle}</h2>
+        <div class="seg2"><button data-type="start">${t.planStartAt}</button><button data-type="finish">${t.planFinishAt}</button></div>
+        <input type="datetime-local" step="300">
+        <div class="res"></div>
+        <div class="will"><div>${armed ? t.planArmed : t.planWill}:</div><div class="desc"></div></div>
+        ${armed ? "" : `<div class="muted">${t.planHint}</div>`}
+        <div class="row">${armed ? `<button class="del">${t.planCancel}</button>` : ""}<button class="go">${t.planDo}</button></div>
+        <div class="toast"></div>
+      </div></div>`;
+    const inp = sr.querySelector("input");
+    inp.value = this._localInput(when);
+    const attrs = armed ? planAttrs : cur;
+    sr.querySelector(".desc").innerHTML = this._describe(attrs);
+    const upd = () => {
+      sr.querySelectorAll(".seg2 button").forEach((b) => b.classList.toggle("on", b.dataset.type === type));
+      const at = new Date(inp.value);
+      const mins = this._minutes(attrs);
+      if (isNaN(at)) return;
+      const start = type === "finish" ? new Date(at.getTime() - mins * 60000) : at;
+      const end = new Date(start.getTime() + mins * 60000);
+      sr.querySelector(".res").textContent = `${t.planStarts} ${this._when(start.toISOString())} · ${t.planFinishes} ${this._when(end.toISOString()).split(" ").pop()}`;
+    };
+    sr.querySelectorAll(".seg2 button").forEach((b) => b.addEventListener("click", () => { type = b.dataset.type; upd(); }));
+    inp.addEventListener("input", upd);
+    upd();
+    const toast = (msg) => {
+      const el = sr.querySelector(".toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3500);
+    };
+    const call = (d, s, key, data = {}) => this._hass.callService(d, s, { entity_id: this._e[key], ...data });
+    sr.querySelector(".go").addEventListener("click", async () => {
+      try {
+        const v = inp.value.replace("T", " ") + ":00";
+        if (armed) await call("switch", "turn_off", "plan");
+        await call("select", "select_option", "plan_type", { option: type });
+        await call("datetime", "set_value", "plan_time", { datetime: v });
+        await call("switch", "turn_on", "plan");
+        this._closePopup();
+      } catch (err) {
+        toast(err?.message || String(err));
+      }
+    });
+    sr.querySelector(".del")?.addEventListener("click", async () => {
+      await call("switch", "turn_off", "plan");
+      this._closePopup();
+    });
+    sr.querySelector(".pop").addEventListener("click", (ev) => ev.target.classList.contains("pop") && this._closePopup());
+    sr.querySelector(".x").addEventListener("click", () => this._closePopup());
+    this._escHandler = (ev) => ev.key === "Escape" && this._closePopup();
+    window.addEventListener("keydown", this._escHandler);
+    document.body.appendChild(host);
+    this._pop = host;
   }
 
   _chState(n) {
@@ -365,6 +506,7 @@ class CosoriAirfryerCard extends HTMLElement {
     const [kind, arg] = act.split(":");
     if (kind === "info") return this._moreInfo(`status_chamber_${arg}`);
     if (kind === "disp") return;
+    if (kind === "plan") return this._openPlan();
     if (kind === "zone") return this._call("select", "select_option", "chamber", { option: arg });
     if (kind === "link") {
       if (!this._e[arg]) return;
@@ -473,6 +615,14 @@ class CosoriAirfryerCard extends HTMLElement {
     q("play").classList.toggle("armed", this._armed === "play");
     q("power").classList.toggle("armed", this._armed === "power");
 
+    const planOn = this._val("plan") === "on";
+    const pb = q("planbtn");
+    if (pb) {
+      pb.classList.toggle("on", planOn);
+      pb.textContent = planOn ? `⏰ ${t.planStarts} ${this._when(this._st("plan")?.attributes.start_time)}` : `⏰ ${t.plan}`;
+      pb.classList.toggle("hidden", !this._e.plan);
+    }
+    if (planOn && !busy && online) tag.textContent = `⏰ ${this._when(this._st("plan")?.attributes.start_time)}`;
     const hint = q("hint");
     if (hint) {
       hint.textContent = t.hint;

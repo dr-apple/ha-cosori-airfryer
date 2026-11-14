@@ -217,6 +217,9 @@
           "both": "Beide Körbe (Sync)",
           "none": "Keiner"
         }
+      },
+      "planned_start": {
+        "name": "Geplanter Start"
       }
     },
     "binary_sensor": {
@@ -287,6 +290,13 @@
           "bread": "Brot",
           "french_fries": "Pommes"
         }
+      },
+      "plan_type": {
+        "name": "Geplante Zeit ist",
+        "state": {
+          "start": "Startzeit",
+          "finish": "Fertig-Zeit"
+        }
       }
     },
     "number": {
@@ -303,6 +313,14 @@
       },
       "match": {
         "name": "Match (gleiche Einstellungen)"
+      },
+      "plan": {
+        "name": "Zeitplan aktiv"
+      }
+    },
+    "datetime": {
+      "plan_time": {
+        "name": "Geplante Zeit"
       }
     }
   },
@@ -340,6 +358,12 @@
         "shrimp": "Garnelen",
         "bread": "Brot",
         "french_fries": "Pommes"
+      }
+    },
+    "plan_type": {
+      "options": {
+        "start": "Startzeit",
+        "finish": "Fertig-Zeit"
       }
     }
   },
@@ -383,6 +407,34 @@
           "description": "Welcher Korb beendet wird; „Beide“ beendet alles."
         }
       }
+    },
+    "schedule_start": {
+      "name": "Start planen",
+      "description": "Übernimmt die aktuellen Einstellungen und startet die Fritteuse zur angegebenen Zeit (oder so, dass sie dann fertig ist).",
+      "fields": {
+        "device_id": {
+          "name": "Heißluftfritteuse",
+          "description": "Heißluftfritteuse"
+        },
+        "time": {
+          "name": "Zeit",
+          "description": "Start- oder Fertig-Zeit."
+        },
+        "type": {
+          "name": "Art",
+          "description": "Ob die Zeit der Start oder das Ende ist."
+        }
+      }
+    },
+    "cancel_schedule": {
+      "name": "Geplanten Start abbrechen",
+      "description": "Bricht den geplanten Start ab.",
+      "fields": {
+        "device_id": {
+          "name": "Heißluftfritteuse",
+          "description": "Heißluftfritteuse"
+        }
+      }
     }
   },
   "exceptions": {
@@ -397,6 +449,12 @@
     },
     "unknown_device": {
       "message": "Keine Cosori-Fritteuse dieser Integration."
+    },
+    "plan_no_time": {
+      "message": "Bitte zuerst eine Zeit einstellen."
+    },
+    "plan_in_past": {
+      "message": "Der geplante Start liegt in der Vergangenheit."
     }
   }
 }

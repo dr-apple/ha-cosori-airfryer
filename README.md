@@ -47,6 +47,21 @@ Programme und Grenzen beim CAF-TF101S:
 Pausieren geht beim TwinFry nicht über die Cloud – Korb herausziehen pausiert, wieder einschieben setzt fort (Status „Korb herausgezogen“).
 Ohne Sync/Match startet „Garen starten“ nur den gewählten Korb. Sync und Match nutzen denselben `startMultiCook`-Befehl, den pyvesync am CAF-DC111S verifiziert hat; die Integration schaltet ihn für die TwinFry frei.
 
+## Zeitplan (später starten)
+
+Die TwinFry kennt über die Cloud keinen Startzeitpunkt, deshalb plant Home Assistant den Start:
+
+| Entität | Beschreibung |
+|---|---|
+| `datetime.…_geplante_zeit` | Uhrzeit des Plans (Standard: nächster Tag 09:00) |
+| `select.…_geplante_zeit_ist` | **Startzeit** oder **Fertig-Zeit** (dann wird die Garzeit abgezogen) |
+| `switch.…_zeitplan_aktiv` | einschalten = planen; die aktuellen Einstellungen (Korb, Programm, Sync/Match …) werden dabei eingefroren |
+| `sensor.…_geplanter_start` | wann tatsächlich gestartet wird |
+
+Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wird er verworfen und eine Benachrichtigung erstellt. Dienste: `cosori_airfryer.schedule_start` (`time`, `type: start|finish`) und `cosori_airfryer.cancel_schedule`.
+
+> Lebensmittel, die stundenlang im Korb warten, bitte entsprechend wählen (Kühlkette).
+
 ## Dashboard-Karte
 
 Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
@@ -61,6 +76,7 @@ type: custom:cosori-airfryer-card
 - **Programme** (Heißluft … Trocknen) antippen = Programm wählen.
 - **KORB 1 / GANZER KORB / KORB 2** = Korb wählen (Pfeile und Programme gelten für diesen Korb); ein garender Korb leuchtet.
 - **SYNC / MATCH** wie am Gerät ein- und ausschalten (nochmal tippen = aus).
+- **⏰ Zeitplan** auf der Schublade: Start- oder Fertig-Zeit wählen und planen; ist ein Start geplant, zeigt die Taste „Startet morgen 09:00“.
 - **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
 - Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
 - Ist die Karte schmaler als 640 px (z. B. Handy oder Spaltenansicht), öffnet ein Tipp aufs Bild eine große Bedienansicht mit herangezoomtem Bedienfeld.

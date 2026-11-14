@@ -144,6 +144,7 @@ async def async_setup_entry(
             )
         if fryer.is_dual_chamber:
             entities.append(WorkChamberSensor(coordinator, fryer))
+        entities.append(PlannedStartSensor(coordinator, fryer))
     async_add_entities(entities)
 
 
@@ -199,3 +200,29 @@ class WorkChamberSensor(CosoriEntity, SensorEntity):
         """Return the active chamber."""
         work = self.fryer.work_chamber
         return CHAMBER_TO_OPTION.get(work, "none") if work else "none"
+
+
+class PlannedStartSensor(CosoriEntity, SensorEntity):
+    """When the planned start will happen (empty if nothing is planned)."""
+
+    _attr_translation_key = "planned_start"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(self, coordinator: CosoriCoordinator, fryer: VeSyncFryer) -> None:
+        """Initialize."""
+        super().__init__(coordinator, fryer, "planned_start")
+
+    async def async_added_to_hass(self) -> None:
+        """Follow plan changes."""
+        await super().async_added_to_hass()
+        self.settings.listeners.append(self.async_write_ha_state)
+        self.async_on_remove(
+            lambda: self.settings.listeners.remove(self.async_write_ha_state)
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the planned start."""
+        if not self.settings.plan_armed:
+            return None
+        return self.coordinator.plan_start_time(self.fryer.cid)

@@ -217,6 +217,9 @@
           "both": "Both baskets (sync)",
           "none": "None"
         }
+      },
+      "planned_start": {
+        "name": "Planned start"
       }
     },
     "binary_sensor": {
@@ -287,6 +290,13 @@
           "bread": "Bread",
           "french_fries": "French fries"
         }
+      },
+      "plan_type": {
+        "name": "Planned time is",
+        "state": {
+          "start": "Start time",
+          "finish": "Finish time"
+        }
       }
     },
     "number": {
@@ -303,6 +313,14 @@
       },
       "match": {
         "name": "Match (same settings)"
+      },
+      "plan": {
+        "name": "Planned start"
+      }
+    },
+    "datetime": {
+      "plan_time": {
+        "name": "Planned time"
       }
     }
   },
@@ -340,6 +358,12 @@
         "shrimp": "Shrimp",
         "bread": "Bread",
         "french_fries": "French fries"
+      }
+    },
+    "plan_type": {
+      "options": {
+        "start": "Start time",
+        "finish": "Finish time"
       }
     }
   },
@@ -383,6 +407,34 @@
           "description": "Which basket to end; 'both' ends everything."
         }
       }
+    },
+    "schedule_start": {
+      "name": "Plan a start",
+      "description": "Freezes the current settings and starts the fryer at the given time (or so that it finishes then).",
+      "fields": {
+        "device_id": {
+          "name": "Air fryer",
+          "description": "Air fryer"
+        },
+        "time": {
+          "name": "Time",
+          "description": "Start or finish time."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Whether the time is the start or the finish."
+        }
+      }
+    },
+    "cancel_schedule": {
+      "name": "Cancel planned start",
+      "description": "Cancels the planned start.",
+      "fields": {
+        "device_id": {
+          "name": "Air fryer",
+          "description": "Air fryer"
+        }
+      }
     }
   },
   "exceptions": {
@@ -397,6 +449,12 @@
     },
     "unknown_device": {
       "message": "Not a Cosori air fryer of this integration."
+    },
+    "plan_no_time": {
+      "message": "Set a planned time first."
+    },
+    "plan_in_past": {
+      "message": "The planned start is in the past."
     }
   }
 }

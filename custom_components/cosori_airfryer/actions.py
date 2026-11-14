@@ -15,7 +15,7 @@ from pyvesync.const import (
 from pyvesync.utils.errors import VeSyncError
 
 from .const import CHAMBER_OPTIONS, DOMAIN, REFRESH_DELAY
-from .coordinator import CosoriCoordinator
+from .coordinator import CosoriCoordinator, StartSettings
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -194,10 +194,12 @@ async def async_start_cooking(
 
 
 async def async_start_from_settings(
-    coordinator: CosoriCoordinator, fryer: VeSyncFryer
+    coordinator: CosoriCoordinator,
+    fryer: VeSyncFryer,
+    settings: StartSettings | None = None,
 ) -> None:
-    """Start with the stored start settings (start button)."""
-    s = coordinator.settings[fryer.cid]
+    """Start with the stored (or given, e.g. frozen planned) settings."""
+    s = settings or coordinator.settings[fryer.cid]
     one, two = s.per[1], s.per[2]
     chamber = s.chamber if fryer.is_dual_chamber else "chamber_1"
     if chamber == "chamber_2" and s.link == "off":

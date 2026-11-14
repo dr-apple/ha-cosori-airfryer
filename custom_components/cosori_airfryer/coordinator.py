@@ -5,14 +5,22 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
 from typing import Any
 
+from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    HomeAssistantError,
+    ServiceValidationError,
+)
 from homeassistant.helpers.debounce import Debouncer
+from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 from pyvesync import VeSync
 from pyvesync.base_devices.fryer_base import FryerState, VeSyncFryer
 from pyvesync.const import AirFryerChamber, AirFryerCookStatus, AirFryerFeatures
@@ -25,6 +33,10 @@ from pyvesync.utils.errors import (
 from .const import DOMAIN, SCAN_INTERVAL_ACTIVE, SCAN_INTERVAL_IDLE
 
 _LOGGER = logging.getLogger(__name__)
+
+# A planned start that HA missed (e.g. it was restarting) still runs if it is
+# at most this late; otherwise it is dropped with a notification.
+PLAN_GRACE = timedelta(minutes=10)
 
 type CosoriConfigEntry = ConfigEntry[CosoriCoordinator]
 
@@ -65,6 +77,12 @@ class StartSettings:
     per: dict[int, ChamberSettings] = field(
         default_factory=lambda: {1: ChamberSettings(), 2: ChamberSettings()}
     )
+    # Planned start: time, whether it is "start at" or "finish at", armed,
+    # and the settings frozen when it was armed.
+    plan_at: datetime | None = None
+    plan_type: str = "start"
+    plan_armed: bool = False
+    plan_snapshot: dict[str, Any] | None = None
     listeners: list = field(default_factory=list)
     on_change: Callable[[], None] | None = None
 
@@ -87,13 +105,32 @@ class StartSettings:
         if self.on_change:
             self.on_change()
 
-    def as_dict(self) -> dict[str, Any]:
-        """Serialize for storage."""
+    def cook_dict(self) -> dict[str, Any]:
+        """The cook settings only (what a planned start freezes)."""
         return {
             "chamber": self.chamber,
             "link": self.link,
             "per": {str(k): asdict(v) for k, v in self.per.items()},
         }
+
+    def as_dict(self) -> dict[str, Any]:
+        """Serialize for storage."""
+        return {
+            **self.cook_dict(),
+            "plan": {
+                "at": self.plan_at.isoformat() if self.plan_at else None,
+                "type": self.plan_type,
+                "armed": self.plan_armed,
+                "snapshot": self.plan_snapshot,
+            },
+        }
+
+    @classmethod
+    def from_cook_dict(cls, data: dict[str, Any]) -> StartSettings:
+        """Build settings from a frozen cook dict."""
+        settings = cls()
+        settings.load(data)
+        return settings
 
     def load(self, data: dict[str, Any]) -> None:
         """Restore from storage."""
@@ -106,6 +143,13 @@ class StartSettings:
                 self.per[int(k)] = ChamberSettings(
                     v.get("mode"), v.get("temperature"), v.get("duration_min")
                 )
+        plan = data.get("plan") or {}
+        if plan.get("at"):
+            self.plan_at = dt_util.parse_datetime(plan["at"])
+        if plan.get("type") in ("start", "finish"):
+            self.plan_type = plan["type"]
+        self.plan_armed = bool(plan.get("armed")) and self.plan_at is not None
+        self.plan_snapshot = plan.get("snapshot") if self.plan_armed else None
 
 
 def chamber_states(fryer: VeSyncFryer) -> list[tuple[AirFryerChamber, FryerState]]:
@@ -158,6 +202,7 @@ class CosoriCoordinator(DataUpdateCoordinator[None]):
             hass, _LOGGER, cooldown=2, immediate=False, function=self._async_save
         )
         self.settings: dict[str, StartSettings] = {}
+        self._plan_unsub: dict[str, CALLBACK_TYPE] = {}
         for cid in self.fryers:
             settings = StartSettings()
             settings.on_change = self._save_debouncer.async_schedule_call
@@ -169,9 +214,129 @@ class CosoriCoordinator(DataUpdateCoordinator[None]):
         for cid, settings in self.settings.items():
             if isinstance(data.get(cid), dict):
                 settings.load(data[cid])
+            if settings.plan_armed:
+                self._restore_plan(cid)
+
+    # ---------------------------------------------------------------- plans
+
+    def plan_start_time(self, cid: str) -> datetime | None:
+        """When the fryer will actually be started."""
+        s = self.settings[cid]
+        if s.plan_at is None:
+            return None
+        if s.plan_type == "start":
+            return s.plan_at
+        snap = StartSettings.from_cook_dict(s.plan_snapshot or s.cook_dict())
+        return s.plan_at - timedelta(minutes=self._longest_minutes(cid, snap))
+
+    def _longest_minutes(self, cid: str, snap: StartSettings) -> int:
+        from .actions import default_duration_min  # noqa: PLC0415
+
+        fryer = self.fryers[cid]
+        baskets = [1, 2] if snap.link in ("sync", "match") else [snap.key]
+        if snap.link == "match":
+            baskets = [1]
+        if snap.chamber == "whole":
+            baskets = [1]
+        return max(
+            (
+                snap.per[n].duration_min
+                if snap.per[n].duration_min is not None
+                else default_duration_min(fryer, snap.per[n].mode)
+            )
+            for n in baskets
+        )
+
+    @callback
+    def async_arm_plan(self, cid: str) -> None:
+        """Freeze the current settings and schedule the start."""
+        s = self.settings[cid]
+        if s.plan_at is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="plan_no_time"
+            )
+        s.plan_snapshot = s.cook_dict()
+        start = self.plan_start_time(cid)
+        if start is None or start <= dt_util.utcnow() + timedelta(seconds=30):
+            s.plan_snapshot = None
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="plan_in_past"
+            )
+        s.plan_armed = True
+        self._schedule(cid)
+        s.notify()
+
+    @callback
+    def async_disarm_plan(self, cid: str) -> None:
+        """Cancel a planned start."""
+        s = self.settings[cid]
+        if unsub := self._plan_unsub.pop(cid, None):
+            unsub()
+        s.plan_armed = False
+        s.plan_snapshot = None
+        s.notify()
+
+    @callback
+    def _schedule(self, cid: str) -> None:
+        if unsub := self._plan_unsub.pop(cid, None):
+            unsub()
+        start = self.plan_start_time(cid)
+        if start is None:
+            return
+
+        async def _fire(_now: datetime) -> None:
+            self._plan_unsub.pop(cid, None)
+            await self._async_run_plan(cid)
+
+        self._plan_unsub[cid] = async_track_point_in_time(self.hass, _fire, start)
+
+    @callback
+    def _restore_plan(self, cid: str) -> None:
+        start = self.plan_start_time(cid)
+        now = dt_util.utcnow()
+        if start is None:
+            self.settings[cid].plan_armed = False
+            return
+        if start < now - PLAN_GRACE:
+            name = self.fryers[cid].device_name.strip()
+            persistent_notification.async_create(
+                self.hass,
+                f"Der geplante Start ({dt_util.as_local(start):%d.%m. %H:%M}) wurde "
+                "verpasst, weil Home Assistant nicht lief. Der Plan wurde verworfen.",
+                title=f"{name}: geplanter Start verpasst",
+                notification_id=f"{DOMAIN}_{cid}_plan",
+            )
+            self.settings[cid].plan_armed = False
+            self.settings[cid].plan_snapshot = None
+            return
+        self._schedule(cid)
+
+    async def _async_run_plan(self, cid: str) -> None:
+        from .actions import async_start_from_settings  # noqa: PLC0415
+
+        s = self.settings[cid]
+        snap = StartSettings.from_cook_dict(s.plan_snapshot or s.cook_dict())
+        name = self.fryers[cid].device_name.strip()
+        try:
+            await async_start_from_settings(self, self.fryers[cid], snap)
+        except HomeAssistantError as err:
+            _LOGGER.error("Planned start of %s failed: %s", name, err)
+            persistent_notification.async_create(
+                self.hass,
+                f"Der geplante Start ist fehlgeschlagen: {err}",
+                title=f"{name}: geplanter Start fehlgeschlagen",
+                notification_id=f"{DOMAIN}_{cid}_plan",
+            )
+        finally:
+            s.plan_armed = False
+            s.plan_snapshot = None
+            s.notify()
 
     async def async_shutdown(self) -> None:
-        """Save pending settings and stop the save timer."""
+        """Save pending settings and stop the timers."""
+        for unsub in self._plan_unsub.values():
+            unsub()
+        self._plan_unsub.clear()
         self._save_debouncer.async_cancel()
         await self._async_save()
         await super().async_shutdown()

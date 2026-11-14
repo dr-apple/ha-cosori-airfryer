@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from homeassistant.util import dt as dt_util
 
 from .actions import async_end_cooking, async_start_cooking
 from .const import (
@@ -32,6 +33,16 @@ START_SCHEMA = vol.Schema(
         vol.Optional(ATTR_DURATION): vol.Coerce(int),
     }
 )
+
+SCHEDULE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_DEVICE_ID): cv.string,
+        vol.Required("time"): cv.datetime,
+        vol.Optional("type", default="start"): vol.In(["start", "finish"]),
+    }
+)
+
+CANCEL_SCHEMA = vol.Schema({vol.Required(ATTR_DEVICE_ID): cv.string})
 
 END_SCHEMA = vol.Schema(
     {
@@ -82,5 +93,21 @@ def async_setup_services(hass: HomeAssistant) -> None:
             chamber = "chamber_1"
         await async_end_cooking(coordinator, fryer, chamber)
 
+    async def _schedule(call: ServiceCall) -> None:
+        coordinator, fryer = _resolve(hass, call.data[ATTR_DEVICE_ID])
+        settings = coordinator.settings[fryer.cid]
+        when = call.data["time"]
+        if when.tzinfo is None:
+            when = dt_util.as_utc(when.replace(tzinfo=dt_util.get_default_time_zone()))
+        settings.plan_at = when.replace(second=0, microsecond=0)
+        settings.plan_type = call.data["type"]
+        coordinator.async_arm_plan(fryer.cid)
+
+    async def _cancel(call: ServiceCall) -> None:
+        coordinator, fryer = _resolve(hass, call.data[ATTR_DEVICE_ID])
+        coordinator.async_disarm_plan(fryer.cid)
+
+    hass.services.async_register(DOMAIN, "schedule_start", _schedule, SCHEDULE_SCHEMA)
+    hass.services.async_register(DOMAIN, "cancel_schedule", _cancel, CANCEL_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_START_COOKING, _start, START_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_END_COOKING, _end, END_SCHEMA)

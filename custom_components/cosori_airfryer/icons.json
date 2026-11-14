@@ -48,6 +48,9 @@
       },
       "work_chamber": {
         "default": "mdi:tray-full"
+      },
+      "planned_start": {
+        "default": "mdi:calendar-clock"
       }
     },
     "binary_sensor": {
@@ -84,6 +87,9 @@
       },
       "mode": {
         "default": "mdi:chef-hat"
+      },
+      "plan_type": {
+        "default": "mdi:clock-start"
       }
     },
     "number": {
@@ -100,6 +106,14 @@
       },
       "match": {
         "default": "mdi:content-copy"
+      },
+      "plan": {
+        "default": "mdi:calendar-clock"
+      }
+    },
+    "datetime": {
+      "plan_time": {
+        "default": "mdi:clock-outline"
       }
     }
   },
@@ -109,6 +123,12 @@
     },
     "end_cooking": {
       "service": "mdi:stop"
+    },
+    "schedule_start": {
+      "service": "mdi:calendar-clock"
+    },
+    "cancel_schedule": {
+      "service": "mdi:calendar-remove"
     }
   }
 }
