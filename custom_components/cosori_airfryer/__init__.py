@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+from pathlib import Path
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -31,10 +35,24 @@ PLATFORMS = [
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+FRONTEND_URL = f"/{DOMAIN}"
+FRONTEND_DIR = Path(__file__).parent / "frontend"
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the integration services."""
+    """Register the services and the dashboard card."""
     async_setup_services(hass)
+    version = await hass.async_add_executor_job(_manifest_version)
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(FRONTEND_URL, str(FRONTEND_DIR), True)]
+    )
+    add_extra_js_url(hass, f"{FRONTEND_URL}/cosori-airfryer-card.js?v={version}")
     return True
+
+
+def _manifest_version() -> str:
+    manifest = json.loads((Path(__file__).parent / "manifest.json").read_text())
+    return manifest.get("version", "0")
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: CosoriConfigEntry) -> bool:

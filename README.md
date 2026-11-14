@@ -46,6 +46,22 @@ Programme und Grenzen beim CAF-TF101S:
 Pausieren geht beim TwinFry nicht über die Cloud – Korb herausziehen pausiert, wieder einschieben setzt fort (Status „Korb herausgezogen“).
 „Beide Körbe (Sync)“ startet beide Körbe mit denselben Einstellungen; unterschiedliche Programme pro Korb lässt die TwinFry-API nur über die App bzw. das Gerät zu.
 
+## Dashboard-Karte
+
+Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
+
+```yaml
+type: custom:cosori-airfryer-card
+# device_id: …   # optional, sonst die erste Cosori-Fritteuse
+```
+
+- **Display** zeigt beim Garen Temperatur und Restzeit (läuft sekündlich mit), sonst die Start-Einstellungen.
+- **Pfeile** links/rechts: Temperatur bzw. Garzeit ändern.
+- **Programme** (Heißluft … Trocknen) antippen = Programm wählen.
+- **KORB 1 / GANZER KORB / KORB 2 / SYNC** = Korb wählen; ein garender Korb leuchtet.
+- **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
+- Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
+
 ## Dienste
 
 ```yaml

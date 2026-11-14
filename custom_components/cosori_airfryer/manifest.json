@@ -3,6 +3,7 @@
   "name": "Cosori Airfryer",
   "codeowners": ["@dr-apple"],
   "config_flow": true,
+  "dependencies": ["frontend", "http"],
   "dhcp": [{ "hostname": "cosori-*" }],
   "documentation": "https://github.com/dr-apple/ha-cosori-airfryer",
   "integration_type": "hub",
@@ -10,5 +11,5 @@
   "issue_tracker": "https://github.com/dr-apple/ha-cosori-airfryer/issues",
   "loggers": ["pyvesync"],
   "requirements": ["pyvesync>=3.5.1"],
-  "version": "0.1.2"
+  "version": "0.2.0"
 }
