@@ -79,6 +79,12 @@ Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wir
 
 Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Texte sind Deutsch oder Englisch (je nach HA-Sprache).
 
+| Zeiten laufen auseinander | Gleichzeitig fertig | Einstellungen |
+|---|---|---|
+| <img src="docs/images/push-auseinander.png" alt="Zwei Meldungen, eine pro Korb" width="300"> | <img src="docs/images/push-gleichzeitig.png" alt="Eine gemeinsame Meldung" width="300"> | <img src="docs/images/push-einstellungen.png" alt="Einstellungsdialog" width="300"> |
+
+*Illustrationen der Meldungen und des Dialogs (Beispieltexte der Integration).*
+
 ## Dashboard-Karte
 
 Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
