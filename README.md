@@ -6,6 +6,8 @@ Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut un
 
 > Die Fritteuse hat keine lokale Schnittstelle; sie spricht nur mit der VeSync-Cloud. Die Integration nutzt deshalb dein VeSync-Konto (Cloud-Polling: 15 s während des Garens, sonst 60 s).
 
+![Dashboard-Karte beim Garen mit Sync](docs/images/garen-sync.png)
+
 *English summary below.*
 
 ## Einrichtung
@@ -66,6 +68,8 @@ Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wir
 
 Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
 
+![Bedienung: Korb 2 wählen, Backen, Temperatur und Zeit anpassen, starten](docs/images/bedienung.gif)
+
 ```yaml
 type: custom:cosori-airfryer-card
 # device_id: …   # optional, sonst die erste Cosori-Fritteuse
@@ -80,6 +84,10 @@ type: custom:cosori-airfryer-card
 - **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
 - Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
 - Ist die Karte schmaler als 640 px (z. B. Handy oder Spaltenansicht), öffnet ein Tipp aufs Bild eine große Bedienansicht mit herangezoomtem Bedienfeld.
+
+| Bereit (Einstellungen pro Korb) | Start planen | Handy |
+|---|---|---|
+| <img src="docs/images/karte.png" alt="Karte im Ruhezustand" width="340"> | <img src="docs/images/zeitplan.png" alt="Zeitplan-Fenster" width="340"> | <img src="docs/images/handy.png" alt="Bedienansicht auf dem Handy" width="180"> |
 
 ## Dienste
 
