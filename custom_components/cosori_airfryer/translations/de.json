@@ -1,0 +1,394 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VeSync-Konto",
+        "description": "Melde dich mit dem Konto aus der VeSync-App an. Die Fritteuse wird über die VeSync-Cloud gesteuert.",
+        "data": {
+          "username": "E-Mail",
+          "password": "Passwort",
+          "country_code": "Ländercode"
+        },
+        "data_description": {
+          "country_code": "Zweistelliges Land des VeSync-Kontos, z. B. DE."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Erneut anmelden",
+        "description": "Gib das VeSync-Passwort für {username} ein.",
+        "data": {
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "E-Mail oder Passwort falsch.",
+      "cannot_connect": "VeSync-Cloud nicht erreichbar.",
+      "no_fryers": "In diesem VeSync-Konto wurde keine Heißluftfritteuse gefunden.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieses Konto ist bereits eingerichtet.",
+      "reauth_successful": "Erneut angemeldet."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cooking": "Gart",
+          "cook_stop": "Pausiert",
+          "cook_end": "Fertig",
+          "pull_out": "Korb herausgezogen",
+          "completed": "Abgeschlossen",
+          "heating": "Heizt vor",
+          "unknown": "Unbekannt",
+          "standby": "Bereit",
+          "preheat_end": "Vorheizen fertig",
+          "preheat_stop": "Vorheizen pausiert",
+          "ready": "Wartet auf Start",
+          "appointing": "Startzeit geplant",
+          "hold": "Wartet (Sync)"
+        }
+      },
+      "status_chamber_1": {
+        "name": "Korb 1 Status",
+        "state": {
+          "cooking": "Gart",
+          "cook_stop": "Pausiert",
+          "cook_end": "Fertig",
+          "pull_out": "Korb herausgezogen",
+          "completed": "Abgeschlossen",
+          "heating": "Heizt vor",
+          "unknown": "Unbekannt",
+          "standby": "Bereit",
+          "preheat_end": "Vorheizen fertig",
+          "preheat_stop": "Vorheizen pausiert",
+          "ready": "Wartet auf Start",
+          "appointing": "Startzeit geplant",
+          "hold": "Wartet (Sync)"
+        }
+      },
+      "status_chamber_2": {
+        "name": "Korb 2 Status",
+        "state": {
+          "cooking": "Gart",
+          "cook_stop": "Pausiert",
+          "cook_end": "Fertig",
+          "pull_out": "Korb herausgezogen",
+          "completed": "Abgeschlossen",
+          "heating": "Heizt vor",
+          "unknown": "Unbekannt",
+          "standby": "Bereit",
+          "preheat_end": "Vorheizen fertig",
+          "preheat_stop": "Vorheizen pausiert",
+          "ready": "Wartet auf Start",
+          "appointing": "Startzeit geplant",
+          "hold": "Wartet (Sync)"
+        }
+      },
+      "remaining": {
+        "name": "Restzeit"
+      },
+      "remaining_chamber_1": {
+        "name": "Korb 1 Restzeit"
+      },
+      "remaining_chamber_2": {
+        "name": "Korb 2 Restzeit"
+      },
+      "finish": {
+        "name": "Fertig um"
+      },
+      "finish_chamber_1": {
+        "name": "Korb 1 Fertig um"
+      },
+      "finish_chamber_2": {
+        "name": "Korb 2 Fertig um"
+      },
+      "mode": {
+        "name": "Programm",
+        "state": {
+          "custom": "Manuell",
+          "roast": "Braten",
+          "bake": "Backen",
+          "reheat": "Aufwärmen",
+          "dehydrate": "Dörren",
+          "frozen": "Tiefkühl",
+          "proof": "Gären",
+          "broil": "Grillen (oben)",
+          "warm": "Warmhalten",
+          "airfry": "Heißluft",
+          "dry": "Trocknen",
+          "grill": "Grillen",
+          "preheat": "Vorheizen",
+          "steak": "Steak",
+          "chicken": "Hähnchen",
+          "seafood": "Fisch",
+          "bacon": "Speck",
+          "vegetables": "Gemüse",
+          "root_vegetables": "Wurzelgemüse",
+          "desserts": "Desserts",
+          "shrimp": "Garnelen",
+          "bread": "Brot",
+          "french_fries": "Pommes"
+        }
+      },
+      "mode_chamber_1": {
+        "name": "Korb 1 Programm",
+        "state": {
+          "custom": "Manuell",
+          "roast": "Braten",
+          "bake": "Backen",
+          "reheat": "Aufwärmen",
+          "dehydrate": "Dörren",
+          "frozen": "Tiefkühl",
+          "proof": "Gären",
+          "broil": "Grillen (oben)",
+          "warm": "Warmhalten",
+          "airfry": "Heißluft",
+          "dry": "Trocknen",
+          "grill": "Grillen",
+          "preheat": "Vorheizen",
+          "steak": "Steak",
+          "chicken": "Hähnchen",
+          "seafood": "Fisch",
+          "bacon": "Speck",
+          "vegetables": "Gemüse",
+          "root_vegetables": "Wurzelgemüse",
+          "desserts": "Desserts",
+          "shrimp": "Garnelen",
+          "bread": "Brot",
+          "french_fries": "Pommes"
+        }
+      },
+      "mode_chamber_2": {
+        "name": "Korb 2 Programm",
+        "state": {
+          "custom": "Manuell",
+          "roast": "Braten",
+          "bake": "Backen",
+          "reheat": "Aufwärmen",
+          "dehydrate": "Dörren",
+          "frozen": "Tiefkühl",
+          "proof": "Gären",
+          "broil": "Grillen (oben)",
+          "warm": "Warmhalten",
+          "airfry": "Heißluft",
+          "dry": "Trocknen",
+          "grill": "Grillen",
+          "preheat": "Vorheizen",
+          "steak": "Steak",
+          "chicken": "Hähnchen",
+          "seafood": "Fisch",
+          "bacon": "Speck",
+          "vegetables": "Gemüse",
+          "root_vegetables": "Wurzelgemüse",
+          "desserts": "Desserts",
+          "shrimp": "Garnelen",
+          "bread": "Brot",
+          "french_fries": "Pommes"
+        }
+      },
+      "set_temperature": {
+        "name": "Solltemperatur"
+      },
+      "set_temperature_chamber_1": {
+        "name": "Korb 1 Solltemperatur"
+      },
+      "set_temperature_chamber_2": {
+        "name": "Korb 2 Solltemperatur"
+      },
+      "set_time": {
+        "name": "Eingestellte Garzeit"
+      },
+      "set_time_chamber_1": {
+        "name": "Korb 1 Eingestellte Garzeit"
+      },
+      "set_time_chamber_2": {
+        "name": "Korb 2 Eingestellte Garzeit"
+      },
+      "work_chamber": {
+        "name": "Aktiver Korb",
+        "state": {
+          "chamber_1": "Korb 1 (links)",
+          "chamber_2": "Korb 2 (rechts)",
+          "whole": "Ganzer Korb (ohne Trenner)",
+          "both": "Beide Körbe (Sync)",
+          "none": "Keiner"
+        }
+      }
+    },
+    "binary_sensor": {
+      "running": {
+        "name": "Gart"
+      },
+      "running_chamber_1": {
+        "name": "Korb 1 gart"
+      },
+      "running_chamber_2": {
+        "name": "Korb 2 gart"
+      },
+      "online": {
+        "name": "Cloud-Verbindung"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Garen starten"
+      },
+      "end": {
+        "name": "Garen beenden"
+      },
+      "end_chamber_1": {
+        "name": "Korb 1 beenden"
+      },
+      "end_chamber_2": {
+        "name": "Korb 2 beenden"
+      },
+      "end_both": {
+        "name": "Alles beenden"
+      }
+    },
+    "select": {
+      "chamber": {
+        "name": "Start-Korb",
+        "state": {
+          "chamber_1": "Korb 1 (links)",
+          "chamber_2": "Korb 2 (rechts)",
+          "whole": "Ganzer Korb (ohne Trenner)",
+          "both": "Beide Körbe (Sync)"
+        }
+      },
+      "mode": {
+        "name": "Start-Programm",
+        "state": {
+          "custom": "Manuell",
+          "roast": "Braten",
+          "bake": "Backen",
+          "reheat": "Aufwärmen",
+          "dehydrate": "Dörren",
+          "frozen": "Tiefkühl",
+          "proof": "Gären",
+          "broil": "Grillen (oben)",
+          "warm": "Warmhalten",
+          "airfry": "Heißluft",
+          "dry": "Trocknen",
+          "grill": "Grillen",
+          "preheat": "Vorheizen",
+          "steak": "Steak",
+          "chicken": "Hähnchen",
+          "seafood": "Fisch",
+          "bacon": "Speck",
+          "vegetables": "Gemüse",
+          "root_vegetables": "Wurzelgemüse",
+          "desserts": "Desserts",
+          "shrimp": "Garnelen",
+          "bread": "Brot",
+          "french_fries": "Pommes"
+        }
+      }
+    },
+    "number": {
+      "temperature": {
+        "name": "Start-Temperatur"
+      },
+      "duration": {
+        "name": "Start-Garzeit"
+      }
+    }
+  },
+  "selector": {
+    "chamber": {
+      "options": {
+        "chamber_1": "Korb 1 (links)",
+        "chamber_2": "Korb 2 (rechts)",
+        "whole": "Ganzer Korb (ohne Trenner)",
+        "both": "Beide Körbe (Sync)"
+      }
+    },
+    "mode": {
+      "options": {
+        "custom": "Manuell",
+        "roast": "Braten",
+        "bake": "Backen",
+        "reheat": "Aufwärmen",
+        "dehydrate": "Dörren",
+        "frozen": "Tiefkühl",
+        "proof": "Gären",
+        "broil": "Grillen (oben)",
+        "warm": "Warmhalten",
+        "airfry": "Heißluft",
+        "dry": "Trocknen",
+        "grill": "Grillen",
+        "preheat": "Vorheizen",
+        "steak": "Steak",
+        "chicken": "Hähnchen",
+        "seafood": "Fisch",
+        "bacon": "Speck",
+        "vegetables": "Gemüse",
+        "root_vegetables": "Wurzelgemüse",
+        "desserts": "Desserts",
+        "shrimp": "Garnelen",
+        "bread": "Brot",
+        "french_fries": "Pommes"
+      }
+    }
+  },
+  "services": {
+    "start_cooking": {
+      "name": "Garen starten",
+      "description": "Startet einen Garvorgang. Fehlende Werte nehmen die Standardwerte des Programms, Werte werden auf dessen Grenzen begrenzt.",
+      "fields": {
+        "device_id": {
+          "name": "Heißluftfritteuse",
+          "description": "Die zu nutzende Fritteuse."
+        },
+        "chamber": {
+          "name": "Korb",
+          "description": "Korb 1, Korb 2, ganzer Korb oder beide synchron."
+        },
+        "mode": {
+          "name": "Programm",
+          "description": "Garprogramm."
+        },
+        "temperature": {
+          "name": "Temperatur",
+          "description": "Gartemperatur in °C."
+        },
+        "duration": {
+          "name": "Garzeit",
+          "description": "Garzeit in Minuten."
+        }
+      }
+    },
+    "end_cooking": {
+      "name": "Garen beenden",
+      "description": "Beendet den Garvorgang in einem Korb oder alles.",
+      "fields": {
+        "device_id": {
+          "name": "Heißluftfritteuse",
+          "description": "Die zu nutzende Fritteuse."
+        },
+        "chamber": {
+          "name": "Korb",
+          "description": "Welcher Korb beendet wird; „Beide“ beendet alles."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_chamber": {
+      "message": "Korb {chamber} wird von dieser Fritteuse nicht unterstützt."
+    },
+    "invalid_mode": {
+      "message": "Unbekanntes Programm {mode}. Verfügbar: {modes}."
+    },
+    "command_failed": {
+      "message": "Die Fritteuse hat den Befehl nicht angenommen."
+    },
+    "unknown_device": {
+      "message": "Keine Cosori-Fritteuse dieser Integration."
+    }
+  }
+}

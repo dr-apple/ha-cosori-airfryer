@@ -1,0 +1,14 @@
+{
+  "domain": "cosori_airfryer",
+  "name": "Cosori Airfryer",
+  "codeowners": ["@dr-apple"],
+  "config_flow": true,
+  "dhcp": [{ "hostname": "cosori-*" }],
+  "documentation": "https://github.com/dr-apple/ha-cosori-airfryer",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/dr-apple/ha-cosori-airfryer/issues",
+  "loggers": ["pyvesync"],
+  "requirements": ["pyvesync==3.5.1"],
+  "version": "0.1.0"
+}

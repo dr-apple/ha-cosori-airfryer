@@ -1,0 +1,106 @@
+{
+  "entity": {
+    "sensor": {
+      "status": {
+        "default": "mdi:pot-steam"
+      },
+      "status_chamber_1": {
+        "default": "mdi:pot-steam"
+      },
+      "status_chamber_2": {
+        "default": "mdi:pot-steam"
+      },
+      "remaining": {
+        "default": "mdi:timer-sand"
+      },
+      "remaining_chamber_1": {
+        "default": "mdi:timer-sand"
+      },
+      "remaining_chamber_2": {
+        "default": "mdi:timer-sand"
+      },
+      "finish": {
+        "default": "mdi:clock-end"
+      },
+      "finish_chamber_1": {
+        "default": "mdi:clock-end"
+      },
+      "finish_chamber_2": {
+        "default": "mdi:clock-end"
+      },
+      "mode": {
+        "default": "mdi:chef-hat"
+      },
+      "mode_chamber_1": {
+        "default": "mdi:chef-hat"
+      },
+      "mode_chamber_2": {
+        "default": "mdi:chef-hat"
+      },
+      "set_time": {
+        "default": "mdi:timer-cog-outline"
+      },
+      "set_time_chamber_1": {
+        "default": "mdi:timer-cog-outline"
+      },
+      "set_time_chamber_2": {
+        "default": "mdi:timer-cog-outline"
+      },
+      "work_chamber": {
+        "default": "mdi:tray-full"
+      }
+    },
+    "binary_sensor": {
+      "running": {
+        "default": "mdi:pot-steam-outline"
+      },
+      "running_chamber_1": {
+        "default": "mdi:pot-steam-outline"
+      },
+      "running_chamber_2": {
+        "default": "mdi:pot-steam-outline"
+      }
+    },
+    "button": {
+      "start": {
+        "default": "mdi:play"
+      },
+      "end": {
+        "default": "mdi:stop"
+      },
+      "end_chamber_1": {
+        "default": "mdi:stop"
+      },
+      "end_chamber_2": {
+        "default": "mdi:stop"
+      },
+      "end_both": {
+        "default": "mdi:stop-circle"
+      }
+    },
+    "select": {
+      "chamber": {
+        "default": "mdi:tray-full"
+      },
+      "mode": {
+        "default": "mdi:chef-hat"
+      }
+    },
+    "number": {
+      "temperature": {
+        "default": "mdi:thermometer"
+      },
+      "duration": {
+        "default": "mdi:timer-outline"
+      }
+    }
+  },
+  "services": {
+    "start_cooking": {
+      "service": "mdi:play"
+    },
+    "end_cooking": {
+      "service": "mdi:stop"
+    }
+  }
+}

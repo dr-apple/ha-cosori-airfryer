@@ -1,0 +1,63 @@
+start_cooking:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: cosori_airfryer
+    chamber:
+      default: chamber_1
+      selector:
+        select:
+          translation_key: chamber
+          options:
+            - chamber_1
+            - chamber_2
+            - whole
+            - both
+    mode:
+      example: airfry
+      selector:
+        select:
+          translation_key: mode
+          custom_value: true
+          options:
+            - airfry
+            - roast
+            - bake
+            - grill
+            - reheat
+            - dry
+    temperature:
+      example: 200
+      selector:
+        number:
+          min: 30
+          max: 250
+          step: 5
+          unit_of_measurement: "°C"
+    duration:
+      example: 15
+      selector:
+        number:
+          min: 1
+          max: 2880
+          unit_of_measurement: min
+
+end_cooking:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: cosori_airfryer
+    chamber:
+      default: both
+      selector:
+        select:
+          translation_key: chamber
+          options:
+            - chamber_1
+            - chamber_2
+            - whole
+            - both

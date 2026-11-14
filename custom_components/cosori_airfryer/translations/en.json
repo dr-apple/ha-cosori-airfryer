@@ -1,0 +1,394 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VeSync account",
+        "description": "Log in with the account you use in the VeSync app. Your fryer is controlled through the VeSync cloud.",
+        "data": {
+          "username": "Email",
+          "password": "Password",
+          "country_code": "Country code"
+        },
+        "data_description": {
+          "country_code": "Two-letter country of the VeSync account, e.g. DE."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Log in again",
+        "description": "Enter the VeSync password for {username}.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Cannot reach the VeSync cloud.",
+      "no_fryers": "No air fryer found in this VeSync account.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This account is already set up.",
+      "reauth_successful": "Logged in again."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cooking": "Cooking",
+          "cook_stop": "Paused",
+          "cook_end": "Finished",
+          "pull_out": "Basket pulled out",
+          "completed": "Completed",
+          "heating": "Preheating",
+          "unknown": "Unknown",
+          "standby": "Standby",
+          "preheat_end": "Preheat finished",
+          "preheat_stop": "Preheat paused",
+          "ready": "Waiting for start",
+          "appointing": "Delayed start",
+          "hold": "Waiting (sync)"
+        }
+      },
+      "status_chamber_1": {
+        "name": "Basket 1 Status",
+        "state": {
+          "cooking": "Cooking",
+          "cook_stop": "Paused",
+          "cook_end": "Finished",
+          "pull_out": "Basket pulled out",
+          "completed": "Completed",
+          "heating": "Preheating",
+          "unknown": "Unknown",
+          "standby": "Standby",
+          "preheat_end": "Preheat finished",
+          "preheat_stop": "Preheat paused",
+          "ready": "Waiting for start",
+          "appointing": "Delayed start",
+          "hold": "Waiting (sync)"
+        }
+      },
+      "status_chamber_2": {
+        "name": "Basket 2 Status",
+        "state": {
+          "cooking": "Cooking",
+          "cook_stop": "Paused",
+          "cook_end": "Finished",
+          "pull_out": "Basket pulled out",
+          "completed": "Completed",
+          "heating": "Preheating",
+          "unknown": "Unknown",
+          "standby": "Standby",
+          "preheat_end": "Preheat finished",
+          "preheat_stop": "Preheat paused",
+          "ready": "Waiting for start",
+          "appointing": "Delayed start",
+          "hold": "Waiting (sync)"
+        }
+      },
+      "remaining": {
+        "name": "Time remaining"
+      },
+      "remaining_chamber_1": {
+        "name": "Basket 1 Time remaining"
+      },
+      "remaining_chamber_2": {
+        "name": "Basket 2 Time remaining"
+      },
+      "finish": {
+        "name": "Finish time"
+      },
+      "finish_chamber_1": {
+        "name": "Basket 1 Finish time"
+      },
+      "finish_chamber_2": {
+        "name": "Basket 2 Finish time"
+      },
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "custom": "Custom",
+          "roast": "Roast",
+          "bake": "Bake",
+          "reheat": "Reheat",
+          "dehydrate": "Dehydrate",
+          "frozen": "Frozen",
+          "proof": "Proof",
+          "broil": "Broil",
+          "warm": "Keep warm",
+          "airfry": "Air fry",
+          "dry": "Dry",
+          "grill": "Grill",
+          "preheat": "Preheat",
+          "steak": "Steak",
+          "chicken": "Chicken",
+          "seafood": "Seafood",
+          "bacon": "Bacon",
+          "vegetables": "Vegetables",
+          "root_vegetables": "Root vegetables",
+          "desserts": "Desserts",
+          "shrimp": "Shrimp",
+          "bread": "Bread",
+          "french_fries": "French fries"
+        }
+      },
+      "mode_chamber_1": {
+        "name": "Basket 1 Mode",
+        "state": {
+          "custom": "Custom",
+          "roast": "Roast",
+          "bake": "Bake",
+          "reheat": "Reheat",
+          "dehydrate": "Dehydrate",
+          "frozen": "Frozen",
+          "proof": "Proof",
+          "broil": "Broil",
+          "warm": "Keep warm",
+          "airfry": "Air fry",
+          "dry": "Dry",
+          "grill": "Grill",
+          "preheat": "Preheat",
+          "steak": "Steak",
+          "chicken": "Chicken",
+          "seafood": "Seafood",
+          "bacon": "Bacon",
+          "vegetables": "Vegetables",
+          "root_vegetables": "Root vegetables",
+          "desserts": "Desserts",
+          "shrimp": "Shrimp",
+          "bread": "Bread",
+          "french_fries": "French fries"
+        }
+      },
+      "mode_chamber_2": {
+        "name": "Basket 2 Mode",
+        "state": {
+          "custom": "Custom",
+          "roast": "Roast",
+          "bake": "Bake",
+          "reheat": "Reheat",
+          "dehydrate": "Dehydrate",
+          "frozen": "Frozen",
+          "proof": "Proof",
+          "broil": "Broil",
+          "warm": "Keep warm",
+          "airfry": "Air fry",
+          "dry": "Dry",
+          "grill": "Grill",
+          "preheat": "Preheat",
+          "steak": "Steak",
+          "chicken": "Chicken",
+          "seafood": "Seafood",
+          "bacon": "Bacon",
+          "vegetables": "Vegetables",
+          "root_vegetables": "Root vegetables",
+          "desserts": "Desserts",
+          "shrimp": "Shrimp",
+          "bread": "Bread",
+          "french_fries": "French fries"
+        }
+      },
+      "set_temperature": {
+        "name": "Set temperature"
+      },
+      "set_temperature_chamber_1": {
+        "name": "Basket 1 Set temperature"
+      },
+      "set_temperature_chamber_2": {
+        "name": "Basket 2 Set temperature"
+      },
+      "set_time": {
+        "name": "Set cook time"
+      },
+      "set_time_chamber_1": {
+        "name": "Basket 1 Set cook time"
+      },
+      "set_time_chamber_2": {
+        "name": "Basket 2 Set cook time"
+      },
+      "work_chamber": {
+        "name": "Active basket",
+        "state": {
+          "chamber_1": "Basket 1 (left)",
+          "chamber_2": "Basket 2 (right)",
+          "whole": "Whole basket (no divider)",
+          "both": "Both baskets (sync)",
+          "none": "None"
+        }
+      }
+    },
+    "binary_sensor": {
+      "running": {
+        "name": "Cooking"
+      },
+      "running_chamber_1": {
+        "name": "Basket 1 cooking"
+      },
+      "running_chamber_2": {
+        "name": "Basket 2 cooking"
+      },
+      "online": {
+        "name": "Cloud connection"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Start cooking"
+      },
+      "end": {
+        "name": "End cooking"
+      },
+      "end_chamber_1": {
+        "name": "End basket 1"
+      },
+      "end_chamber_2": {
+        "name": "End basket 2"
+      },
+      "end_both": {
+        "name": "End all"
+      }
+    },
+    "select": {
+      "chamber": {
+        "name": "Start basket",
+        "state": {
+          "chamber_1": "Basket 1 (left)",
+          "chamber_2": "Basket 2 (right)",
+          "whole": "Whole basket (no divider)",
+          "both": "Both baskets (sync)"
+        }
+      },
+      "mode": {
+        "name": "Start mode",
+        "state": {
+          "custom": "Custom",
+          "roast": "Roast",
+          "bake": "Bake",
+          "reheat": "Reheat",
+          "dehydrate": "Dehydrate",
+          "frozen": "Frozen",
+          "proof": "Proof",
+          "broil": "Broil",
+          "warm": "Keep warm",
+          "airfry": "Air fry",
+          "dry": "Dry",
+          "grill": "Grill",
+          "preheat": "Preheat",
+          "steak": "Steak",
+          "chicken": "Chicken",
+          "seafood": "Seafood",
+          "bacon": "Bacon",
+          "vegetables": "Vegetables",
+          "root_vegetables": "Root vegetables",
+          "desserts": "Desserts",
+          "shrimp": "Shrimp",
+          "bread": "Bread",
+          "french_fries": "French fries"
+        }
+      }
+    },
+    "number": {
+      "temperature": {
+        "name": "Start temperature"
+      },
+      "duration": {
+        "name": "Start cook time"
+      }
+    }
+  },
+  "selector": {
+    "chamber": {
+      "options": {
+        "chamber_1": "Basket 1 (left)",
+        "chamber_2": "Basket 2 (right)",
+        "whole": "Whole basket (no divider)",
+        "both": "Both baskets (sync)"
+      }
+    },
+    "mode": {
+      "options": {
+        "custom": "Custom",
+        "roast": "Roast",
+        "bake": "Bake",
+        "reheat": "Reheat",
+        "dehydrate": "Dehydrate",
+        "frozen": "Frozen",
+        "proof": "Proof",
+        "broil": "Broil",
+        "warm": "Keep warm",
+        "airfry": "Air fry",
+        "dry": "Dry",
+        "grill": "Grill",
+        "preheat": "Preheat",
+        "steak": "Steak",
+        "chicken": "Chicken",
+        "seafood": "Seafood",
+        "bacon": "Bacon",
+        "vegetables": "Vegetables",
+        "root_vegetables": "Root vegetables",
+        "desserts": "Desserts",
+        "shrimp": "Shrimp",
+        "bread": "Bread",
+        "french_fries": "French fries"
+      }
+    }
+  },
+  "services": {
+    "start_cooking": {
+      "name": "Start cooking",
+      "description": "Starts a cook. Missing values use the program's defaults; values are clamped to the program's limits.",
+      "fields": {
+        "device_id": {
+          "name": "Air fryer",
+          "description": "The fryer to use."
+        },
+        "chamber": {
+          "name": "Basket",
+          "description": "Basket 1, basket 2, the whole basket or both in sync."
+        },
+        "mode": {
+          "name": "Program",
+          "description": "Cook program."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Cook temperature in °C."
+        },
+        "duration": {
+          "name": "Cook time",
+          "description": "Cook time in minutes."
+        }
+      }
+    },
+    "end_cooking": {
+      "name": "End cooking",
+      "description": "Ends the cook in a basket, or everything.",
+      "fields": {
+        "device_id": {
+          "name": "Air fryer",
+          "description": "The fryer to use."
+        },
+        "chamber": {
+          "name": "Basket",
+          "description": "Which basket to end; 'both' ends everything."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_chamber": {
+      "message": "Basket {chamber} is not supported by this fryer."
+    },
+    "invalid_mode": {
+      "message": "Unknown program {mode}. Available: {modes}."
+    },
+    "command_failed": {
+      "message": "The fryer did not accept the command."
+    },
+    "unknown_device": {
+      "message": "Not a Cosori air fryer of this integration."
+    }
+  }
+}
