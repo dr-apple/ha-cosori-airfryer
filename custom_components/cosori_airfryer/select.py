@@ -6,7 +6,6 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from pyvesync.base_devices.fryer_base import VeSyncFryer
 
 from .actions import (
@@ -35,52 +34,47 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class _SettingSelect(CosoriEntity, SelectEntity, RestoreEntity):
-    """A select that stores a start setting."""
+class _SettingSelect(CosoriEntity, SelectEntity):
+    """A select that edits the stored start settings."""
 
     _attr_entity_category = EntityCategory.CONFIG
 
     async def async_added_to_hass(self) -> None:
-        """Restore the last value and follow changes from other entities."""
+        """Follow changes made by the other setting entities."""
         await super().async_added_to_hass()
-        last = await self.async_get_last_state()
-        if last is not None and last.state in self.options:
-            self._restore(last.state)
         self.settings.listeners.append(self.async_write_ha_state)
         self.async_on_remove(
             lambda: self.settings.listeners.remove(self.async_write_ha_state)
         )
 
-    def _restore(self, value: str) -> None:
-        raise NotImplementedError
-
 
 class ChamberSelect(_SettingSelect):
-    """Which basket the start button uses."""
+    """Basket that is edited and started (Korb 1, Korb 2, ganzer Korb)."""
 
     _attr_translation_key = "chamber"
 
     def __init__(self, coordinator: CosoriCoordinator, fryer: VeSyncFryer) -> None:
         """Initialize."""
         super().__init__(coordinator, fryer, "start_chamber")
-        self._attr_options = supported_chamber_options(fryer)
-
-    def _restore(self, value: str) -> None:
-        self.settings.chamber = value
+        self._attr_options = [
+            o for o in supported_chamber_options(fryer) if o != "both"
+        ]
 
     @property
     def current_option(self) -> str:
-        """Return the selected chamber."""
+        """Return the selected basket."""
         return self.settings.chamber
 
     async def async_select_option(self, option: str) -> None:
-        """Select a chamber."""
+        """Select a basket (the whole basket has no Sync/Match)."""
         self.settings.chamber = option
+        if option == "whole":
+            self.settings.link = "off"
         self.settings.notify()
 
 
 class ModeSelect(_SettingSelect):
-    """Cook mode used by the start button."""
+    """Cook program of the selected basket."""
 
     _attr_translation_key = "mode"
 
@@ -88,20 +82,19 @@ class ModeSelect(_SettingSelect):
         """Initialize."""
         super().__init__(coordinator, fryer, "start_mode")
         self._attr_options = mode_keys(fryer)
-        if self.settings.mode is None:
-            self.settings.mode = default_mode(fryer)
-
-    def _restore(self, value: str) -> None:
-        self.settings.mode = value
+        for per in self.settings.per.values():
+            if per.mode not in self._attr_options:
+                per.mode = default_mode(fryer)
 
     @property
     def current_option(self) -> str | None:
-        """Return the selected mode."""
-        return self.settings.mode
+        """Return the program of the selected basket."""
+        return self.settings.current.mode
 
     async def async_select_option(self, option: str) -> None:
-        """Select a mode and load its default temperature and time."""
-        self.settings.mode = option
-        self.settings.temperature = default_temperature(self.fryer, option)
-        self.settings.duration_min = default_duration_min(self.fryer, option)
+        """Select a program and load its default temperature and time."""
+        cur = self.settings.current
+        cur.mode = option
+        cur.temperature = default_temperature(self.fryer, option)
+        cur.duration_min = default_duration_min(self.fryer, option)
         self.settings.notify()

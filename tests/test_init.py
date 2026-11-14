@@ -120,16 +120,16 @@ async def test_setup_and_start(hass: HomeAssistant) -> None:
         # Configure and start: whole basket, Grill, out-of-range temp is clamped.
         await hass.services.async_call(
             "select", "select_option",
-            {"entity_id": "select.airfryer_start_korb", "option": "whole"}, blocking=True,
+            {"entity_id": "select.airfryer_korb", "option": "whole"}, blocking=True,
         )
         await hass.services.async_call(
             "select", "select_option",
-            {"entity_id": "select.airfryer_start_programm", "option": "grill"}, blocking=True,
+            {"entity_id": "select.airfryer_programm", "option": "grill"}, blocking=True,
         )
-        assert hass.states.get("number.airfryer_start_temperatur").state == "240"
+        assert hass.states.get("number.airfryer_temperatur").state == "240"
         await hass.services.async_call(
             "number", "set_value",
-            {"entity_id": "number.airfryer_start_garzeit", "value": 12}, blocking=True,
+            {"entity_id": "number.airfryer_garzeit", "value": 12}, blocking=True,
         )
         api.reset_mock()
         api.return_value = response({})
@@ -160,6 +160,70 @@ async def test_setup_and_start(hass: HomeAssistant) -> None:
         print("SERVICE", data)
         assert data["workChamber"] == 4 and data["syncType"] == 2
         assert len(data["cookConfigs"]) == 2
+
+        # Per-basket settings + SYNC: basket 1 grill 12 min, basket 2 bake 160 °C 30 min.
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": "select.airfryer_korb", "option": "chamber_2"}, blocking=True,
+        )
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": "select.airfryer_programm", "option": "bake"}, blocking=True,
+        )
+        await hass.services.async_call(
+            "number", "set_value",
+            {"entity_id": "number.airfryer_temperatur", "value": 160}, blocking=True,
+        )
+        await hass.services.async_call(
+            "number", "set_value",
+            {"entity_id": "number.airfryer_garzeit", "value": 30}, blocking=True,
+        )
+        await hass.services.async_call(
+            "switch", "turn_on",
+            {"entity_id": "switch.airfryer_sync_gleichzeitig_fertig"}, blocking=True,
+        )
+        attrs = hass.states.get("button.airfryer_garen_starten").attributes
+        print("ATTRS", dict(attrs))
+        assert attrs["link"] == "sync"
+        assert attrs["chamber_2"] == {"mode": "bake", "temperature": 160, "duration": 30}
+        api.reset_mock()
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.airfryer_garen_starten"}, blocking=True,
+        )
+        data = _body(api)["payload"]["data"]
+        print("SYNC", data)
+        assert data["workChamber"] == 4 and data["syncType"] == 2
+        c1, c2 = data["cookConfigs"]
+        assert (c1["chamber"], c1["mode"], c1["cookTemp"], c1["cookSetTime"]) == (1, "Grill", 240, 720)
+        assert (c2["chamber"], c2["mode"], c2["cookTemp"], c2["cookSetTime"]) == (2, "Bake", 160, 1800)
+
+        # MATCH: both baskets get basket 1's settings, SYNC goes off.
+        await hass.services.async_call(
+            "switch", "turn_on",
+            {"entity_id": "switch.airfryer_match_gleiche_einstellungen"}, blocking=True,
+        )
+        assert hass.states.get("switch.airfryer_sync_gleichzeitig_fertig").state == "off"
+        assert hass.states.get("select.airfryer_programm").state == "grill"
+        api.reset_mock()
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.airfryer_garen_starten"}, blocking=True,
+        )
+        data = _body(api)["payload"]["data"]
+        print("MATCH", data)
+        assert data["workChamber"] == 4 and data["syncType"] == 1
+        assert [c["mode"] for c in data["cookConfigs"]] == ["Grill", "Grill"]
+
+        # MATCH off again -> only the selected basket (2) starts.
+        await hass.services.async_call(
+            "switch", "turn_off",
+            {"entity_id": "switch.airfryer_match_gleiche_einstellungen"}, blocking=True,
+        )
+        api.reset_mock()
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.airfryer_garen_starten"}, blocking=True,
+        )
+        data = _body(api)["payload"]["data"]
+        assert data["workChamber"] == 2 and data["cookConfigs"][0]["mode"] == "Bake"
 
         api.reset_mock()
         await hass.services.async_call(

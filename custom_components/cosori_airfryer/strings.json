@@ -296,6 +296,14 @@
       "duration": {
         "name": "Start cook time"
       }
+    },
+    "switch": {
+      "sync": {
+        "name": "Sync (finish together)"
+      },
+      "match": {
+        "name": "Match (same settings)"
+      }
     }
   },
   "selector": {

@@ -30,6 +30,7 @@ PLATFORMS = [
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
+    Platform.SWITCH,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -79,6 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CosoriConfigEntry) -> bo
         )
 
     coordinator = CosoriCoordinator(hass, entry, manager)
+    await coordinator.async_load_settings()
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 

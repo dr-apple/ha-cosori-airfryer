@@ -7,7 +7,11 @@ import logging
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from pyvesync.base_devices.fryer_base import VeSyncFryer
-from pyvesync.const import AirFryerModeConfig
+from pyvesync.const import (
+    AirFryerModeConfig,
+    AirFryerPresetRecipe,
+    AirFryerSyncType,
+)
 from pyvesync.utils.errors import VeSyncError
 
 from .const import CHAMBER_OPTIONS, DOMAIN, REFRESH_DELAY
@@ -84,23 +88,7 @@ def supported_chamber_options(fryer: VeSyncFryer) -> list[str]:
     ]
 
 
-async def async_start_cooking(
-    coordinator: CosoriCoordinator,
-    fryer: VeSyncFryer,
-    chamber: str,
-    mode: str | None,
-    temperature: int | None,
-    duration_min: int | None,
-) -> None:
-    """Start a cook on the fryer."""
-    if chamber not in CHAMBER_OPTIONS or CHAMBER_OPTIONS[
-        chamber
-    ] not in fryer.supported_chambers:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="invalid_chamber",
-            translation_placeholders={"chamber": chamber},
-        )
+def _check_mode(fryer: VeSyncFryer, mode: str | None) -> None:
     if mode and fryer.get_cook_mode(mode) is None:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
@@ -110,6 +98,16 @@ async def async_start_cooking(
                 "modes": ", ".join(mode_keys(fryer)),
             },
         )
+
+
+def make_recipe(
+    fryer: VeSyncFryer,
+    mode: str | None,
+    temperature: int | None,
+    duration_min: int | None,
+) -> AirFryerPresetRecipe:
+    """Build a recipe, filling gaps with the program defaults and clamping."""
+    _check_mode(fryer, mode)
     mode = mode or default_mode(fryer)
     t_lo, t_hi, t_step = temp_limits(fryer, mode)
     d_lo, d_hi, d_step = time_limits_min(fryer, mode)
@@ -125,21 +123,16 @@ async def async_start_cooking(
         d_hi,
         d_step,
     )
-    recipe = dataclasses.replace(
+    return dataclasses.replace(
         mode_config(fryer, mode).to_recipe(fryer.temp_unit),
         target_temp=temp,
         cook_time=minutes * 60,
     )
-    _LOGGER.debug(
-        "Start %s: chamber=%s mode=%s temp=%s time=%s min",
-        fryer.device_name,
-        chamber,
-        mode,
-        temp,
-        minutes,
-    )
+
+
+async def _run(coordinator: CosoriCoordinator, call) -> None:
     try:
-        ok = await fryer.set_mode_from_recipe(recipe, chamber=CHAMBER_OPTIONS[chamber])
+        ok = await call
     except VeSyncError as err:
         raise HomeAssistantError(f"VeSync error: {err}") from err
     if not ok:
@@ -148,6 +141,79 @@ async def async_start_cooking(
         )
     coordinator.async_update_listeners()
     _schedule_refresh(coordinator)
+
+
+async def async_start_cooking(
+    coordinator: CosoriCoordinator,
+    fryer: VeSyncFryer,
+    chamber: str,
+    mode: str | None,
+    temperature: int | None,
+    duration_min: int | None,
+    link: str = "off",
+    mode_2: str | None = None,
+    temperature_2: int | None = None,
+    duration_2: int | None = None,
+) -> None:
+    """Start a cook.
+
+    link 'match': both baskets with the given settings (Match).
+    link 'sync': basket 1 with the given settings, basket 2 with the *_2
+    settings, both finish together (Sync).
+    Otherwise only ``chamber`` is started.
+    """
+    if chamber not in CHAMBER_OPTIONS or CHAMBER_OPTIONS[
+        chamber
+    ] not in fryer.supported_chambers:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="invalid_chamber",
+            translation_placeholders={"chamber": chamber},
+        )
+    recipe = make_recipe(fryer, mode, temperature, duration_min)
+    if link in ("sync", "match") and fryer.is_dual_chamber and chamber != "whole":
+        if link == "match":
+            _LOGGER.debug("Start %s: match %s", fryer.device_name, recipe)
+            await _run(
+                coordinator,
+                fryer.set_chamber_modes(recipe, None, sync_type=AirFryerSyncType.MATCH),
+            )
+            return
+        recipe_2 = make_recipe(fryer, mode_2, temperature_2, duration_2)
+        _LOGGER.debug("Start %s: sync %s / %s", fryer.device_name, recipe, recipe_2)
+        await _run(
+            coordinator,
+            fryer.set_chamber_modes(recipe, recipe_2, sync_type=AirFryerSyncType.SYNC),
+        )
+        return
+    _LOGGER.debug("Start %s: %s %s", fryer.device_name, chamber, recipe)
+    await _run(
+        coordinator,
+        fryer.set_mode_from_recipe(recipe, chamber=CHAMBER_OPTIONS[chamber]),
+    )
+
+
+async def async_start_from_settings(
+    coordinator: CosoriCoordinator, fryer: VeSyncFryer
+) -> None:
+    """Start with the stored start settings (start button)."""
+    s = coordinator.settings[fryer.cid]
+    one, two = s.per[1], s.per[2]
+    chamber = s.chamber if fryer.is_dual_chamber else "chamber_1"
+    if chamber == "chamber_2" and s.link == "off":
+        one = two
+    await async_start_cooking(
+        coordinator,
+        fryer,
+        chamber,
+        one.mode,
+        one.temperature,
+        one.duration_min,
+        link=s.link if fryer.is_dual_chamber else "off",
+        mode_2=two.mode,
+        temperature_2=two.temperature,
+        duration_2=two.duration_min,
+    )
 
 
 async def async_end_cooking(

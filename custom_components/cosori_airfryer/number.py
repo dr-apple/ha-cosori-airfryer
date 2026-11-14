@@ -6,7 +6,6 @@ from homeassistant.components.number import NumberDeviceClass, NumberEntity, Num
 from homeassistant.const import EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from pyvesync.base_devices.fryer_base import VeSyncFryer
 
 from .actions import (
@@ -33,8 +32,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class _SettingNumber(CosoriEntity, NumberEntity, RestoreEntity):
-    """A number that stores a start setting; limits follow the selected mode."""
+class _SettingNumber(CosoriEntity, NumberEntity):
+    """A setting of the selected basket; limits follow its program."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_mode = NumberMode.BOX
@@ -47,17 +46,8 @@ class _SettingNumber(CosoriEntity, NumberEntity, RestoreEntity):
         raise NotImplementedError
 
     async def async_added_to_hass(self) -> None:
-        """Restore the last value and follow mode changes."""
+        """Follow changes made by the other setting entities."""
         await super().async_added_to_hass()
-        last = await self.async_get_last_state()
-        if getattr(self.settings, self._field) is None:
-            value = self._default()
-            if last is not None:
-                try:
-                    value = int(float(last.state))
-                except ValueError:
-                    pass
-            setattr(self.settings, self._field, value)
         self.settings.listeners.append(self.async_write_ha_state)
         self.async_on_remove(
             lambda: self.settings.listeners.remove(self.async_write_ha_state)
@@ -65,36 +55,36 @@ class _SettingNumber(CosoriEntity, NumberEntity, RestoreEntity):
 
     @property
     def native_min_value(self) -> float:
-        """Minimum for the selected mode."""
+        """Minimum for the program."""
         return self._limits()[0]
 
     @property
     def native_max_value(self) -> float:
-        """Maximum for the selected mode."""
+        """Maximum for the program."""
         return self._limits()[1]
 
     @property
     def native_step(self) -> float:
-        """Step for the selected mode."""
+        """Step for the program."""
         return self._limits()[2]
 
     @property
     def native_value(self) -> float | None:
-        """Return the stored value, clamped to the mode limits."""
-        value = getattr(self.settings, self._field)
+        """Return the stored value (program default if unset), clamped."""
+        value = getattr(self.settings.current, self._field)
         if value is None:
-            return None
+            value = self._default()
         lo, hi, _ = self._limits()
         return min(max(value, lo), hi)
 
     async def async_set_native_value(self, value: float) -> None:
-        """Store a new value."""
-        setattr(self.settings, self._field, int(value))
+        """Store a new value for the selected basket."""
+        setattr(self.settings.current, self._field, int(value))
         self.settings.notify()
 
 
 class TemperatureNumber(_SettingNumber):
-    """Cook temperature used by the start button."""
+    """Cook temperature of the selected basket."""
 
     _attr_translation_key = "temperature"
     _attr_device_class = NumberDeviceClass.TEMPERATURE
@@ -106,14 +96,14 @@ class TemperatureNumber(_SettingNumber):
         super().__init__(coordinator, fryer, "start_temperature")
 
     def _limits(self) -> tuple[int, int, int]:
-        return temp_limits(self.fryer, self.settings.mode)
+        return temp_limits(self.fryer, self.settings.current.mode)
 
     def _default(self) -> int:
-        return default_temperature(self.fryer, self.settings.mode)
+        return default_temperature(self.fryer, self.settings.current.mode)
 
 
 class DurationNumber(_SettingNumber):
-    """Cook time (minutes) used by the start button."""
+    """Cook time (minutes) of the selected basket."""
 
     _attr_translation_key = "duration"
     _attr_device_class = NumberDeviceClass.DURATION
@@ -125,7 +115,7 @@ class DurationNumber(_SettingNumber):
         super().__init__(coordinator, fryer, "start_duration")
 
     def _limits(self) -> tuple[int, int, int]:
-        return time_limits_min(self.fryer, self.settings.mode)
+        return time_limits_min(self.fryer, self.settings.current.mode)
 
     def _default(self) -> int:
-        return default_duration_min(self.fryer, self.settings.mode)
+        return default_duration_min(self.fryer, self.settings.current.mode)

@@ -26,9 +26,10 @@ Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut un
 | `binary_sensor.…_korb_N_gart` | an, solange der Korb heizt/gart |
 | `sensor.…_aktiver_korb` | Korb 1, Korb 2, Ganzer Korb, Beide (Sync) |
 | `binary_sensor.…_cloud_verbindung` | Fritteuse in der VeSync-Cloud online |
-| `select.…_start_korb` | Korb 1 (links), Korb 2 (rechts), Ganzer Korb (ohne Trenner), Beide Körbe (Sync) |
-| `select.…_start_programm` | Programm für den Start; setzt Temperatur/Zeit auf die App-Standardwerte |
-| `number.…_start_temperatur` / `start_garzeit` | Grenzen folgen dem Programm (z. B. Grillen 205–240 °C) |
+| `select.…_start_korb` („Korb“) | Korb, der bearbeitet/gestartet wird: Korb 1 (links), Korb 2 (rechts), Ganzer Korb |
+| `select.…_start_programm` / `number.…_start_temperatur` / `number.…_start_garzeit` | Einstellungen **des gewählten Korbs** (jeder Korb hat eigene, sie bleiben über Neustarts erhalten); Programmwechsel setzt die App-Standardwerte |
+| `switch.…_sync` | **Sync**: jeder Korb mit eigenen Einstellungen, beide werden gleichzeitig fertig |
+| `switch.…_match` | **Match**: Korb 2 übernimmt die Einstellungen von Korb 1 |
 | `button.…_garen_starten` | startet mit den obigen Einstellungen |
 | `button.…_korb_1_beenden` / `korb_2_beenden` / `alles_beenden` | beendet den Garvorgang |
 
@@ -44,7 +45,7 @@ Programme und Grenzen beim CAF-TF101S:
 | Trocknen (`dry`) | 35–95 °C | 30 min–48 h (30-min-Schritte) |
 
 Pausieren geht beim TwinFry nicht über die Cloud – Korb herausziehen pausiert, wieder einschieben setzt fort (Status „Korb herausgezogen“).
-„Beide Körbe (Sync)“ startet beide Körbe mit denselben Einstellungen; unterschiedliche Programme pro Korb lässt die TwinFry-API nur über die App bzw. das Gerät zu.
+Ohne Sync/Match startet „Garen starten“ nur den gewählten Korb. Sync und Match nutzen denselben `startMultiCook`-Befehl, den pyvesync am CAF-DC111S verifiziert hat; die Integration schaltet ihn für die TwinFry frei.
 
 ## Dashboard-Karte
 
@@ -58,7 +59,8 @@ type: custom:cosori-airfryer-card
 - **Display** zeigt beim Garen Temperatur und Restzeit (läuft sekündlich mit), sonst die Start-Einstellungen.
 - **Pfeile** links/rechts: Temperatur bzw. Garzeit ändern.
 - **Programme** (Heißluft … Trocknen) antippen = Programm wählen.
-- **KORB 1 / GANZER KORB / KORB 2 / SYNC** = Korb wählen; ein garender Korb leuchtet.
+- **KORB 1 / GANZER KORB / KORB 2** = Korb wählen (Pfeile und Programme gelten für diesen Korb); ein garender Korb leuchtet.
+- **SYNC / MATCH** wie am Gerät ein- und ausschalten (nochmal tippen = aus).
 - **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
 - Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
 - Ist die Karte schmaler als 640 px (z. B. Handy oder Spaltenansicht), öffnet ein Tipp aufs Bild eine große Bedienansicht mit herangezoomtem Bedienfeld.

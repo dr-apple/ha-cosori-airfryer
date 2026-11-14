@@ -8,7 +8,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from pyvesync.base_devices.fryer_base import VeSyncFryer
 from pyvesync.const import AirFryerChamber
 
-from .actions import async_end_cooking, async_start_cooking
+from .actions import (
+    async_end_cooking,
+    async_start_from_settings,
+    default_duration_min,
+    default_temperature,
+)
 from .const import CHAMBER_TO_OPTION
 from .coordinator import CosoriConfigEntry, CosoriCoordinator, chamber_states
 from .entity import CosoriEntity
@@ -44,13 +49,34 @@ class StartButton(CosoriEntity, ButtonEntity):
         """Initialize."""
         super().__init__(coordinator, fryer, "start")
 
-    async def async_press(self) -> None:
-        """Start the cook."""
-        s = self.settings
-        chamber = s.chamber if self.fryer.is_dual_chamber else "chamber_1"
-        await async_start_cooking(
-            self.coordinator, self.fryer, chamber, s.mode, s.temperature, s.duration_min
+    async def async_added_to_hass(self) -> None:
+        """Expose the current start settings as attributes."""
+        await super().async_added_to_hass()
+        self.settings.listeners.append(self.async_write_ha_state)
+        self.async_on_remove(
+            lambda: self.settings.listeners.remove(self.async_write_ha_state)
         )
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Settings per basket (used by the dashboard card)."""
+        s = self.settings
+        attrs: dict = {"chamber": s.chamber, "link": s.link}
+        for n, per in s.per.items():
+            attrs[f"chamber_{n}"] = {
+                "mode": per.mode,
+                "temperature": per.temperature
+                if per.temperature is not None
+                else default_temperature(self.fryer, per.mode),
+                "duration": per.duration_min
+                if per.duration_min is not None
+                else default_duration_min(self.fryer, per.mode),
+            }
+        return attrs
+
+    async def async_press(self) -> None:
+        """Start the cook with the stored settings."""
+        await async_start_from_settings(self.coordinator, self.fryer)
 
 
 class EndButton(CosoriEntity, ButtonEntity):

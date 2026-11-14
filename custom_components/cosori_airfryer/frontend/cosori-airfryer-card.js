@@ -25,7 +25,7 @@ const T = {
     },
     basket: "Korb", done: "fertig", offline: "Offline", confirmStart: "Nochmal tippen zum Starten",
     confirmEnd: "Nochmal tippen zum Beenden", confirmAll: "Nochmal tippen: alles aus", close: "Schließen",
-    hint: "Tippen zum Bedienen",
+    hint: "Tippen zum Bedienen", noLinkWhole: "Sync/Match nur mit zwei Körben",
   },
   en: {
     modes: { airfry: "AIR FRY", roast: "ROAST", bake: "BAKE", grill: "GRILL", reheat: "REHEAT", dry: "DRY" },
@@ -38,7 +38,7 @@ const T = {
     },
     basket: "Basket", done: "done", offline: "Offline", confirmStart: "Tap again to start",
     confirmEnd: "Tap again to stop", confirmAll: "Tap again: all off", close: "Close",
-    hint: "Tap to control",
+    hint: "Tap to control", noLinkWhole: "Sync/Match needs two baskets",
   },
 };
 
@@ -126,8 +126,8 @@ function panelHTML(withChips) {
       <div class="o arr" style="${z(66.3, 22.9)}" data-act="time-"></div>
       <div class="o btn" data-k="power" style="${z(30.1, 25.6)}" data-act="power"></div>
       <div class="o btn" data-k="play" style="${z(71.2, 25.6)}" data-act="play"></div>
-      <div class="o pill filled" data-k="p-both" style="${z(43.9, 25.7)}" data-act="zone:both"></div>
-      <div class="o pill filled dim" data-k="p-match" style="${z(57.4, 25.7)}"></div>
+      <div class="o pill filled" data-k="p-sync" style="${z(43.9, 25.7)}" data-act="link:sync"></div>
+      <div class="o pill filled" data-k="p-match" style="${z(57.4, 25.7)}" data-act="link:match"></div>
       ${MODES.map((m, i) => `<div class="o lbl" data-k="m-${m}" style="${z(MODE_X[i], 29.2)}" data-act="mode:${m}"></div>`).join("")}
       <div class="o pill" data-k="p-chamber_1" style="${z(30.5, 32.9)}" data-act="zone:chamber_1"></div>
       <div class="o pill" data-k="p-whole" style="${z(50.8, 32.9)}" data-act="zone:whole"></div>
@@ -310,6 +310,17 @@ class CosoriAirfryerCard extends HTMLElement {
     this._render();
   }
 
+  _link() {
+    if (this._val("sync") === "on") return "sync";
+    if (this._val("match") === "on") return "match";
+    return "off";
+  }
+
+  _cfg(n) {
+    const a = this._st("start")?.attributes || {};
+    return this._link() === "match" ? a.chamber_1 : a[`chamber_${n}`];
+  }
+
   _chState(n) {
     return this._val(`status_chamber_${n}`) || "standby";
   }
@@ -355,6 +366,11 @@ class CosoriAirfryerCard extends HTMLElement {
     if (kind === "info") return this._moreInfo(`status_chamber_${arg}`);
     if (kind === "disp") return;
     if (kind === "zone") return this._call("select", "select_option", "chamber", { option: arg });
+    if (kind === "link") {
+      if (!this._e[arg]) return;
+      if ((this._val("chamber") || "chamber_1") === "whole" && this._val(arg) !== "on") return this._toast(t.noLinkWhole);
+      return this._call("switch", this._val(arg) === "on" ? "turn_off" : "turn_on", arg);
+    }
     if (kind === "mode") return this._call("select", "select_option", "mode", { option: arg });
     if (kind.startsWith("temp") || kind.startsWith("time")) {
       const key = kind.startsWith("temp") ? "temperature" : "duration";
@@ -368,9 +384,10 @@ class CosoriAirfryerCard extends HTMLElement {
     if (kind === "play") {
       const sel = this._val("chamber") || "chamber_1";
       const target = sel === "chamber_2" ? 2 : 1;
-      const runningSel = sel === "both" || sel === "whole" ? busy : this._isActive(target);
+      const all = sel === "whole" || this._link() !== "off" || this._val("work_chamber") === "both";
+      const runningSel = all ? busy : this._isActive(target);
       if (runningSel) {
-        const endKey = sel === "both" || sel === "whole" ? "end_both" : `end_chamber_${target}`;
+        const endKey = all ? "end_both" : `end_chamber_${target}`;
         return this._arm("play", t.confirmEnd, () => this._call("button", "press", endKey));
       }
       return this._arm("play", t.confirmStart, () => this._call("button", "press", "start"));
@@ -421,7 +438,9 @@ class CosoriAirfryerCard extends HTMLElement {
       const dur = Number(this._val("duration"));
       q("temp").innerHTML = `${temp && !isNaN(temp) ? Math.round(temp) : "---"}<small>°C</small>`;
       q("time").textContent = isNaN(dur) ? "--:--" : dur >= 60 ? `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}:00` : `${String(dur).padStart(2, "0")}:00`;
-      tag.textContent = "";
+      const lk = this._link();
+      tag.textContent = sel === "whole" ? t.whole : lk === "match" ? `${t.zone1} + ${t.zone2} · ${t.match}`
+        : `${sel === "chamber_2" ? t.zone2 : t.zone1}${lk === "sync" ? " · " + t.sync : ""}`;
     }
 
     const curMode = focus ? this._val(`mode_chamber_${focus}`) : mode;
@@ -431,19 +450,25 @@ class CosoriAirfryerCard extends HTMLElement {
       el.classList.toggle("sel", m === curMode);
     });
 
+    const link = this._link();
     const zoneRun = {
       chamber_1: RUNNING.includes(this._chState(1)) && work !== "whole",
       chamber_2: RUNNING.includes(this._chState(2)),
       whole: work === "whole" && busy,
-      both: work === "both" && busy,
     };
-    for (const [z, label] of [["chamber_1", t.zone1], ["chamber_2", t.zone2], ["whole", t.whole], ["both", t.sync]]) {
+    for (const [z, label] of [["chamber_1", t.zone1], ["chamber_2", t.zone2], ["whole", t.whole]]) {
       const el = q(`p-${z}`);
       el.textContent = label;
-      el.classList.toggle("sel", z === sel);
+      el.classList.toggle("sel", z === sel || (link === "match" && z !== "whole"));
       el.classList.toggle("run", !!zoneRun[z]);
     }
-    q("p-match").textContent = t.match;
+    for (const [k, label] of [["sync", t.sync], ["match", t.match]]) {
+      const el = q(`p-${k}`);
+      el.textContent = label;
+      el.classList.toggle("sel", link === k);
+      el.classList.toggle("dim", sel === "whole" || !this._e[k]);
+      el.classList.toggle("run", link === k && busy);
+    }
     q("play").classList.toggle("on", busy);
     q("play").classList.toggle("armed", this._armed === "play");
     q("power").classList.toggle("armed", this._armed === "power");
@@ -471,9 +496,18 @@ class CosoriAirfryerCard extends HTMLElement {
       if (inWrap && n === 1) c.style.left = wholeBusy ? "50%" : "21.5%";
       const title = n === 1 && wholeBusy ? t.whole : `${t.basket} ${n}`;
       if (!act) {
-        c.innerHTML = `<div class="h"><span>${title}</span><span class="s">${t.status[st] || st}</span></div>`;
+        const cfg = this._cfg(n);
+        const lk = this._link();
+        const willRun = sel === "whole" ? n === 1 : lk !== "off" || sel === `chamber_${n}`;
+        const set = cfg && willRun
+          ? `<div class="sub">${t.modesLong[cfg.mode] || ""} · ${cfg.temperature}°C · ${cfg.duration} min</div>` : "";
+        c.innerHTML = `<div class="h"><span>${sel === "whole" && n === 1 ? t.whole : title}</span><span class="s">${t.status[st] || st}</span></div>${set}`;
+        c.style.opacity = willRun || !cfg ? "1" : ".55";
+        if (inWrap && n === 1) c.style.left = sel === "whole" ? "50%" : "21.5%";
+        if (n === 2) c.classList.toggle("hidden", sel === "whole");
         continue;
       }
+      c.style.opacity = "1";
       const rem = this._remaining(n);
       const setSt = this._st(`set_time_chamber_${n}`);
       const setT = Number(setSt?.state);
@@ -491,7 +525,7 @@ class CosoriAirfryerCard extends HTMLElement {
         <div class="bar"><i style="width:${pct}%"></i></div>`;
     }
     const chips = root.querySelector(".chips");
-    if (chips) chips.classList.toggle("one", wholeBusy);
+    if (chips) chips.classList.toggle("one", wholeBusy || (!busy && sel === "whole"));
   }
 }
 

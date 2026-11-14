@@ -252,7 +252,7 @@
     },
     "select": {
       "chamber": {
-        "name": "Start-Korb",
+        "name": "Korb",
         "state": {
           "chamber_1": "Korb 1 (links)",
           "chamber_2": "Korb 2 (rechts)",
@@ -261,7 +261,7 @@
         }
       },
       "mode": {
-        "name": "Start-Programm",
+        "name": "Programm",
         "state": {
           "custom": "Manuell",
           "roast": "Braten",
@@ -291,10 +291,18 @@
     },
     "number": {
       "temperature": {
-        "name": "Start-Temperatur"
+        "name": "Temperatur"
       },
       "duration": {
-        "name": "Start-Garzeit"
+        "name": "Garzeit"
+      }
+    },
+    "switch": {
+      "sync": {
+        "name": "Sync (gleichzeitig fertig)"
+      },
+      "match": {
+        "name": "Match (gleiche Einstellungen)"
       }
     }
   },

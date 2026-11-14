@@ -93,6 +93,14 @@
       "duration": {
         "default": "mdi:timer-outline"
       }
+    },
+    "switch": {
+      "sync": {
+        "default": "mdi:timer-sync-outline"
+      },
+      "match": {
+        "default": "mdi:content-copy"
+      }
     }
   },
   "services": {
