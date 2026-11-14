@@ -35,5 +35,19 @@ ATTR_MODE: Final = "mode"
 ATTR_TEMPERATURE: Final = "temperature"
 ATTR_DURATION: Final = "duration"
 
+# Options: push notifications when a basket is done.
+CONF_NOTIFY_ENABLED: Final = "notify_enabled"
+CONF_NOTIFY_TARGET: Final = "notify_target"
+CONF_NOTIFY_APART: Final = "notify_apart"
+CONF_NOTIFY_TOGETHER: Final = "notify_together"
+CONF_NOTIFY_TOLERANCE: Final = "notify_tolerance"
+CONF_NOTIFY_BASKET_1: Final = "notify_basket_1"
+CONF_NOTIFY_BASKET_2: Final = "notify_basket_2"
+DEFAULT_NOTIFY_ENABLED: Final = False
+DEFAULT_NOTIFY_APART: Final = True
+DEFAULT_NOTIFY_TOGETHER: Final = True
+DEFAULT_NOTIFY_TOLERANCE: Final = 1
+DEFAULT_NOTIFY_BASKET: Final = True
+
 SERVICE_START_COOKING: Final = "start_cooking"
 SERVICE_END_COOKING: Final = "end_cooking"

@@ -32,6 +32,26 @@
       "reauth_successful": "Logged in again."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Push notifications",
+        "description": "Get a message when a basket is done. With different cooking times each basket can announce itself.",
+        "data": {
+          "notify_enabled": "Send notifications",
+          "notify_target": "Notification service",
+          "notify_apart": "One message per basket when they finish at different times",
+          "notify_together": "One message when both finish together (or only one basket is used)",
+          "notify_tolerance": "Finish times closer than this count as together",
+          "notify_basket_1": "Notify for basket 1",
+          "notify_basket_2": "Notify for basket 2"
+        },
+        "data_description": {
+          "notify_target": "A notify action such as notify.mobile_app_my_phone or a notify group. Empty: a message in the Home Assistant sidebar."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "status": {

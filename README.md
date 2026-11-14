@@ -64,6 +64,21 @@ Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wir
 
 > Lebensmittel, die stundenlang im Korb warten, bitte entsprechend wählen (Kühlkette).
 
+## Push-Benachrichtigungen pro Korb
+
+*Einstellungen → Geräte & Dienste → Cosori Airfryer → Konfigurieren.* Alles ist dort einstellbar:
+
+| Einstellung | Bedeutung |
+|---|---|
+| Benachrichtigungen senden | Hauptschalter (Standard: aus) |
+| Benachrichtigungsdienst | z. B. `notify.mobile_app_mein_handy` oder eine Notify-Gruppe; leer = Meldung in der HA-Seitenleiste |
+| Eine Meldung pro Korb … | Werden die Körbe zu **unterschiedlichen Zeiten** fertig, meldet sich jeder Korb einzeln („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) |
+| Eine Meldung, wenn beide gleichzeitig fertig werden | eine gemeinsame Meldung („Beide Körbe sind fertig.“), auch wenn nur ein Korb benutzt wurde |
+| Toleranz (min) | liegen die Fertigzeiten näher beieinander, gelten sie als gleichzeitig (Standard 1) |
+| Für Korb 1 / Korb 2 melden | pro Korb abschaltbar |
+
+Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Texte sind Deutsch oder Englisch (je nach HA-Sprache).
+
 ## Dashboard-Karte
 
 Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.

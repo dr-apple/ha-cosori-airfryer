@@ -31,6 +31,7 @@ from pyvesync.utils.errors import (
 )
 
 from .const import DOMAIN, SCAN_INTERVAL_ACTIVE, SCAN_INTERVAL_IDLE
+from .notifications import FinishNotifier
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -184,6 +185,7 @@ class CosoriCoordinator(DataUpdateCoordinator[None]):
             update_interval=SCAN_INTERVAL_IDLE,
         )
         self.manager = manager
+        self.notifier = FinishNotifier(hass, entry)
         self.fryers: dict[str, VeSyncFryer] = {
             fryer.cid: fryer for fryer in manager.devices.air_fryers
         }
@@ -360,3 +362,4 @@ class CosoriCoordinator(DataUpdateCoordinator[None]):
 
         busy = any(is_active(fryer) for fryer in self.fryers.values())
         self.update_interval = SCAN_INTERVAL_ACTIVE if busy else SCAN_INTERVAL_IDLE
+        await self.notifier.async_process(self.fryers)

@@ -32,6 +32,26 @@
       "reauth_successful": "Erneut angemeldet."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Push-Benachrichtigungen",
+        "description": "Meldung, wenn ein Korb fertig ist. Laufen die Zeiten auseinander, meldet sich jeder Korb einzeln.",
+        "data": {
+          "notify_enabled": "Benachrichtigungen senden",
+          "notify_target": "Benachrichtigungsdienst",
+          "notify_apart": "Eine Meldung pro Korb, wenn sie zu unterschiedlichen Zeiten fertig werden",
+          "notify_together": "Eine Meldung, wenn beide gleichzeitig fertig werden (oder nur ein Korb läuft)",
+          "notify_tolerance": "Fertigzeiten näher als dies gelten als gleichzeitig",
+          "notify_basket_1": "Für Korb 1 melden",
+          "notify_basket_2": "Für Korb 2 melden"
+        },
+        "data_description": {
+          "notify_target": "Ein Notify-Dienst wie notify.mobile_app_mein_handy oder eine Notify-Gruppe. Leer: Meldung in der Home-Assistant-Seitenleiste."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "status": {
