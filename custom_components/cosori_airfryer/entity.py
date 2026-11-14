@@ -28,7 +28,7 @@ class CosoriEntity(CoordinatorEntity[CosoriCoordinator]):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, fryer.cid)},
             connections=connections,
-            name=fryer.device_name,
+            name=(fryer.device_name or "").strip() or "Cosori Airfryer",
             manufacturer="Cosori",
             model=getattr(fryer, "model_name", None) or fryer.device_type,
             model_id=fryer.device_type,
