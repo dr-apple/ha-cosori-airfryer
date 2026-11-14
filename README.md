@@ -61,6 +61,7 @@ type: custom:cosori-airfryer-card
 - **KORB 1 / GANZER KORB / KORB 2 / SYNC** = Korb wählen; ein garender Korb leuchtet.
 - **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
 - Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
+- Ist die Karte schmaler als 640 px (z. B. Handy oder Spaltenansicht), öffnet ein Tipp aufs Bild eine große Bedienansicht mit herangezoomtem Bedienfeld.
 
 ## Dienste
 
