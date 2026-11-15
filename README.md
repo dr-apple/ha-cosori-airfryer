@@ -89,7 +89,7 @@ The plan survives restarts. If HA misses the start by more than 10 minutes, it i
 | Tolerance (min) | Finish times closer than this count as simultaneous (default 1) |
 | Notify for basket 1 / basket 2 | Can be turned off per basket |
 
-Baskets ended by hand ("end" button) do not send a message. Texts are German or English, depending on the HA language.
+Baskets ended by hand ("end" button) do not send a message. The TwinFry has one shared drawer for both baskets: pulling it out reports "basket out" also for a basket that is not cooking – this is ignored. Texts are German or English, depending on the HA language.
 
 | Times differ | Done together | Options |
 |---|---|---|
@@ -102,7 +102,7 @@ Baskets ended by hand ("end" button) do not send a message. Texts are German or 
 With **"Live Activity on the lock screen"** in the same options, the iPhone (iOS 17.2+, HA app with Live Activities) or Android 16 shows a Live Activity while cooking:
 
 - **one per basket**; with **Sync, Match or whole basket** one shared activity ("Basket 1 + 2")
-- program, temperature and status ("cooking", "waiting", "basket out"), **countdown** to the finish time and a **progress bar**
+- **countdown** to the finish time and a **progress bar**; while paused (e.g. basket out) it shows program, temperature and status (during the countdown iOS shows only the time)
 - at the end it turns **green with a sound** ("Basket 1 is done. Basket 2 still needs 20 min.") and disappears after 10 minutes; this replaces the normal push message
 - ended by hand → it disappears immediately
 

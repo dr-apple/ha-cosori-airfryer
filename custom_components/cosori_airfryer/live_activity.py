@@ -38,9 +38,6 @@ RUNNING = {
     AirFryerCookStatus.HOLD,
 }
 DONE = {AirFryerCookStatus.COOK_END, AirFryerCookStatus.COMPLETED}
-# Same rule as the finish notifier: dropping to standby with more than this
-# left means it was ended by hand.
-NATURAL_END_SECONDS = 120
 # Keep the green "done" activity this long, then remove it.
 DONE_LINGER_SECONDS = 10 * 60
 # Refresh the progress bar at most this often (iOS throttles updates).
@@ -119,6 +116,8 @@ class _Activity:
     signature: tuple | None = None
     left: dict[int, int | None] = field(default_factory=dict)
     total: int = 0
+    # Seen cooking (or waiting for Sync) at least once.
+    ran: bool = False
     clear_unsub: CALLBACK_TYPE | None = None
 
 
@@ -187,9 +186,9 @@ class LiveActivityManager:
     def _groups(
         self, fryer: VeSyncFryer, states: dict[int, FryerState]
     ) -> dict[str, tuple[str, tuple[int, ...]]]:
-        from .coordinator import ACTIVE_STATUSES  # noqa: PLC0415
+        from .coordinator import is_cooking  # noqa: PLC0415
 
-        active = [n for n, st in states.items() if st.cook_status in ACTIVE_STATUSES]
+        active = [n for n, st in states.items() if is_cooking(st)]
         if not active:
             return {}
         work = fryer.work_chamber
@@ -207,6 +206,8 @@ class LiveActivityManager:
         states: dict[int, FryerState],
         acts: dict[str, _Activity],
     ) -> None:
+        from .coordinator import ended_naturally  # noqa: PLC0415
+
         groups = self._groups(fryer, states)
         name = fryer.device_name.strip()
 
@@ -220,13 +221,8 @@ class LiveActivityManager:
                 continue
             if act.kind in groups:
                 continue
-            natural = any(
-                states[n].cook_status in DONE
-                or (
-                    states[n].cook_status in (None, AirFryerCookStatus.STANDBY)
-                    and act.left.get(n) is not None
-                    and (act.left.get(n) or 0) <= NATURAL_END_SECONDS
-                )
+            natural = act.ran and any(
+                ended_naturally(states[n].cook_status, act.left.get(n), act.total)
                 for n in act.members
                 if n in states
             )
@@ -300,6 +296,8 @@ class LiveActivityManager:
         finishes = [_finish(states[n]) for n in members]
         finish = max((f for f in finishes if f is not None), default=None)
         running = any(states[n].cook_status in RUNNING for n in members)
+        if running:
+            act.ran = True
 
         data: dict[str, Any] = {
             "tag": act.tag,

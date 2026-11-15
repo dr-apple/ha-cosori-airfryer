@@ -231,7 +231,9 @@ async def test_setup_and_start(hass: HomeAssistant) -> None:
         )
         body = _body(api)
         assert body["payload"]["method"] == "endCook"
-        assert body["payload"]["data"] == {"chamber": 4}
+        # Only basket 2 was started last (no Sync/Match): the fryer refuses
+        # "end both" then, so the running basket is ended instead.
+        assert body["payload"]["data"] == {"chamber": 2}
 
         assert await hass.config_entries.async_unload(entry.entry_id)
 

@@ -87,7 +87,7 @@ Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wir
 | Toleranz (min) | liegen die Fertigzeiten näher beieinander, gelten sie als gleichzeitig (Standard 1) |
 | Für Korb 1 / Korb 2 melden | pro Korb abschaltbar |
 
-Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Texte sind Deutsch oder Englisch (je nach HA-Sprache).
+Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die TwinFry hat einen gemeinsamen Auszug für beide Körbe: Herausziehen meldet „Korb raus“ auch für einen Korb, der gerade nicht gart – das wird ignoriert. Die Texte sind Deutsch oder Englisch (je nach HA-Sprache).
 
 | Zeiten laufen auseinander | Gleichzeitig fertig | Einstellungen |
 |---|---|---|
@@ -100,7 +100,7 @@ Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Tex
 Mit **„Live-Aktivität auf dem Sperrbildschirm“** in denselben Einstellungen zeigt das iPhone (iOS 17.2+, HA-App mit Live-Aktivitäten) bzw. Android 16 während des Garens eine Live-Aktivität:
 
 - **pro Korb** eine eigene, bei **Sync, Match oder ganzem Korb** eine gemeinsame („Korb 1 + 2“)
-- Programm, Temperatur und Status („gart“, „wartet“, „Korb raus“), **Countdown** bis „fertig um“ und **Fortschrittsbalken**
+- **Countdown** bis „fertig um“ und **Fortschrittsbalken**; pausiert sie (z. B. Korb raus), stehen dort Programm, Temperatur und Status (iOS zeigt während des Countdowns nur die Zeit)
 - am Ende wird sie **grün mit Ton** („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) und verschwindet nach 10 Minuten; diese Meldung ersetzt dann die normale Push-Meldung
 - von Hand beendet → sie verschwindet sofort
 

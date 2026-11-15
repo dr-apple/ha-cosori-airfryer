@@ -467,7 +467,15 @@ class CosoriAirfryerCard extends HTMLElement {
   }
 
   _isActive(n) {
-    return ACTIVE.includes(this._chState(n));
+    const st = this._chState(n);
+    if (!ACTIVE.includes(st)) return false;
+    // One drawer for both baskets: "basket out" also shows for a basket that
+    // is not cooking. Only count it with time left.
+    if (st === "pull_out") {
+      const r = this._remaining(n);
+      return r != null && r > 0;
+    }
+    return true;
   }
 
   /* chamber whose values the display shows */
@@ -572,7 +580,7 @@ class CosoriAirfryerCard extends HTMLElement {
       const temp = this._val(`set_temperature_chamber_${focus}`);
       q("temp").innerHTML = `${temp && !isNaN(temp) ? Math.round(temp) : "---"}<small>°C</small>`;
       q("time").textContent = this._fmt(this._remaining(focus));
-      const zoneLbl = work === "whole" ? t.whole : work === "both" ? t.sync : focus === 1 ? t.zone1 : t.zone2;
+      const zoneLbl = work === "whole" ? t.whole : work === "both" ? (this._link() === "match" ? t.match : t.sync) : focus === 1 ? t.zone1 : t.zone2;
       const run = RUNNING.includes(this._chState(focus));
       tag.innerHTML = `${run ? '<span class="dot"></span>' : ""}${zoneLbl} · ${t.status[this._chState(focus)] || ""}`;
     } else {
@@ -636,7 +644,7 @@ class CosoriAirfryerCard extends HTMLElement {
       const c = q(`c${n}`);
       if (!c) continue;
       const st = this._chState(n);
-      const act = ACTIVE.includes(st);
+      const act = this._isActive(n);
       if (n === 2 && wholeBusy) {
         c.classList.add("hidden");
         continue;

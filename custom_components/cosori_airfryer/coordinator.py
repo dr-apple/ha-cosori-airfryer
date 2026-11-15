@@ -162,11 +162,52 @@ def chamber_states(fryer: VeSyncFryer) -> list[tuple[AirFryerChamber, FryerState
     return states
 
 
+def _left(state: FryerState) -> int:
+    total = state.total_time_remaining
+    left = total if total is not None else state.cook_time_remaining
+    return int(left or 0)
+
+
+def is_cooking(state: FryerState) -> bool:
+    """Return True if this basket has a cook in progress.
+
+    The TwinFry has one drawer for both baskets: pulling it out reports
+    "basket out" for both, also for a basket that is not cooking. Such an
+    empty basket (nothing left, no temperature) does not count.
+    """
+    if state.cook_status not in ACTIVE_STATUSES:
+        return False
+    if state.cook_status == AirFryerCookStatus.PULL_OUT:
+        return _left(state) > 0 and bool(state.cook_set_temp)
+    return True
+
+
+# Dropping to standby with at most this much left counts as a natural end
+# (the cloud can skip "cook end"); more than that means ended by hand.
+NATURAL_END_SECONDS = 120
+
+
+def ended_naturally(
+    status: AirFryerCookStatus | None, previous_left: int | None, total: int | None
+) -> bool:
+    """Return True if a basket that was cooking finished on its own.
+
+    For short cooks only the last quarter counts, so ending a 1-minute test
+    run by hand is not reported as done.
+    """
+    if status in (AirFryerCookStatus.COOK_END, AirFryerCookStatus.COMPLETED):
+        return True
+    if status not in (None, AirFryerCookStatus.STANDBY) or previous_left is None:
+        return False
+    limit = NATURAL_END_SECONDS
+    if total:
+        limit = min(limit, int(total) // 4)
+    return previous_left <= limit
+
+
 def is_active(fryer: VeSyncFryer) -> bool:
     """Return True if any chamber of the fryer is busy."""
-    return any(
-        state.cook_status in ACTIVE_STATUSES for _, state in chamber_states(fryer)
-    )
+    return any(is_cooking(state) for _, state in chamber_states(fryer))
 
 
 class CosoriCoordinator(DataUpdateCoordinator[None]):

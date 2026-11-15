@@ -8,6 +8,7 @@ import logging
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from pyvesync.base_devices.fryer_base import VeSyncFryer
 from pyvesync.const import (
+    AirFryerChamber,
     AirFryerModeConfig,
     AirFryerPresetRecipe,
     AirFryerSyncType,
@@ -15,7 +16,7 @@ from pyvesync.const import (
 from pyvesync.utils.errors import VeSyncError
 
 from .const import CHAMBER_OPTIONS, DOMAIN, REFRESH_DELAY
-from .coordinator import CosoriCoordinator, StartSettings
+from .coordinator import CosoriCoordinator, StartSettings, chamber_states, is_cooking
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -230,7 +231,9 @@ async def async_end_cooking(
             translation_placeholders={"chamber": chamber},
         )
     try:
-        ok = await fryer.end(target)
+        ok = True
+        for part in _end_targets(fryer, target):
+            ok = await fryer.end(part) and ok
     except VeSyncError as err:
         raise HomeAssistantError(f"VeSync error: {err}") from err
     if not ok:
@@ -239,6 +242,22 @@ async def async_end_cooking(
         )
     coordinator.async_update_listeners()
     _schedule_refresh(coordinator)
+
+
+def _end_targets(fryer: VeSyncFryer, target: AirFryerChamber) -> list[AirFryerChamber]:
+    """Chambers to end for a request.
+
+    The fryer refuses "end both" unless both baskets run together (Sync/Match);
+    with one basket (or the whole basket) running, end exactly what runs.
+    """
+    if target != AirFryerChamber.BOTH or not fryer.is_dual_chamber:
+        return [target]
+    if fryer.work_chamber == AirFryerChamber.BOTH:
+        return [target]
+    if fryer.work_chamber == AirFryerChamber.WHOLE:
+        return [AirFryerChamber.WHOLE]
+    running = [ch for ch, st in chamber_states(fryer) if is_cooking(st)]
+    return running or [target]
 
 
 def _schedule_refresh(coordinator: CosoriCoordinator) -> None:

@@ -50,10 +50,6 @@ RUNNING = {
 }
 DONE = {AirFryerCookStatus.COOK_END, AirFryerCookStatus.COMPLETED}
 
-# A basket that drops straight to standby with more than this left was ended
-# by hand (or the plug was pulled), not finished: no message.
-NATURAL_END_SECONDS = 120
-
 TEXTS = {
     "de": {
         "apart": "Korb {n} ist fertig. Korb {m} läuft noch {min} min.",
@@ -84,6 +80,8 @@ class _Track:
 
     status: dict[int, AirFryerCookStatus | None] = field(default_factory=dict)
     remaining: dict[int, int | None] = field(default_factory=dict)
+    # Set cook time of the current/last cook per basket (seconds).
+    total: dict[int, int] = field(default_factory=dict)
     # Basket 1/2 already got a per-basket message because the other one ran on.
     apart: bool = False
     # Basket whose own message was folded into a combined one.
@@ -109,7 +107,7 @@ class FinishNotifier:
 
     async def async_process(self, fryers: dict[str, VeSyncFryer]) -> None:
         """Look at the new states of all fryers (call after every poll)."""
-        from .coordinator import chamber_states  # noqa: PLC0415
+        from .coordinator import chamber_states, ended_naturally  # noqa: PLC0415
 
         for cid, fryer in fryers.items():
             states = {
@@ -126,9 +124,8 @@ class FinishNotifier:
             finished = [
                 n
                 for n, st in now_status.items()
-                if track.status.get(n) in RUNNING and self._ended_naturally(
-                    st, track.remaining.get(n)
-                )
+                if track.status.get(n) in RUNNING
+                and ended_naturally(st, track.remaining.get(n), track.total.get(n))
             ]
             try:
                 await self._async_handle(fryer, track, states, finished)
@@ -140,16 +137,9 @@ class FinishNotifier:
                 track.suppress.clear()
             track.status = now_status
             track.remaining = now_remaining
-
-    @staticmethod
-    def _ended_naturally(
-        status: AirFryerCookStatus | None, previous_left: int | None
-    ) -> bool:
-        if status in DONE:
-            return True
-        if status in (None, AirFryerCookStatus.STANDBY):
-            return previous_left is not None and previous_left <= NATURAL_END_SECONDS
-        return False
+            for n, st in states.items():
+                if st.cook_status in RUNNING and st.cook_set_time:
+                    track.total[n] = int(st.cook_set_time)
 
     async def _async_handle(
         self,
