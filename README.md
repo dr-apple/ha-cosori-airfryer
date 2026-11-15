@@ -66,7 +66,7 @@ Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wir
 
 ## Push-Benachrichtigungen pro Korb
 
-*Einstellungen → Geräte & Dienste → Cosori Airfryer → Konfigurieren.* Alles ist dort einstellbar:
+*Einstellungen → Geräte & Dienste → Cosori Airfryer → Konfigurieren.* Alles ist dort einstellbar (auch die [Live-Aktivität](#live-aktivität-auf-dem-sperrbildschirm)):
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -93,6 +93,8 @@ Mit **„Live-Aktivität auf dem Sperrbildschirm“** in denselben Einstellungen
 - Programm, Temperatur und Status („gart“, „wartet“, „Korb raus“), **Countdown** bis „fertig um“ und **Fortschrittsbalken**
 - am Ende wird sie **grün mit Ton** („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) und verschwindet nach 10 Minuten; diese Meldung ersetzt dann die normale Push-Meldung
 - von Hand beendet → sie verschwindet sofort
+
+![Live-Aktivität: ein Korb gart, Sync gemeinsam, fertig in Grün](docs/images/live-aktivitaet.png)
 
 Ziel ist der Benachrichtigungsdienst von oben; er muss ein Notify-Dienst der Home-Assistant-App sein (`notify.mobile_app_…` oder eine Notify-Gruppe aus solchen). Aktualisiert wird nur bei Änderungen bzw. höchstens einmal pro Minute für den Balken – iOS drosselt häufigere Updates.
 
