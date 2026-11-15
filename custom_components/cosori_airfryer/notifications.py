@@ -21,6 +21,8 @@ from pyvesync.base_devices.fryer_base import FryerState, VeSyncFryer
 from pyvesync.const import AirFryerCookStatus
 
 from .const import (
+    CONF_LIVE_ACTIVITY,
+    DEFAULT_LIVE_ACTIVITY,
     CONF_NOTIFY_APART,
     CONF_NOTIFY_BASKET_1,
     CONF_NOTIFY_BASKET_2,
@@ -157,6 +159,9 @@ class FinishNotifier:
         finished: list[int],
     ) -> None:
         if not finished or not self._opts.get(CONF_NOTIFY_ENABLED, DEFAULT_NOTIFY_ENABLED):
+            return
+        if self._opts.get(CONF_LIVE_ACTIVITY, DEFAULT_LIVE_ACTIVITY):
+            # The live activity turns green with a sound instead.
             return
         opts = self._opts
         tolerance = int(opts.get(CONF_NOTIFY_TOLERANCE, DEFAULT_NOTIFY_TOLERANCE)) * 60

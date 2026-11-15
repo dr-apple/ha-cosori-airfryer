@@ -48,6 +48,9 @@ DEFAULT_NOTIFY_APART: Final = True
 DEFAULT_NOTIFY_TOGETHER: Final = True
 DEFAULT_NOTIFY_TOLERANCE: Final = 1
 DEFAULT_NOTIFY_BASKET: Final = True
+# Live Activity (iOS) / Live Update (Android) while cooking, same target.
+CONF_LIVE_ACTIVITY: Final = "live_activity"
+DEFAULT_LIVE_ACTIVITY: Final = False
 
 SERVICE_START_COOKING: Final = "start_cooking"
 SERVICE_END_COOKING: Final = "end_cooking"

@@ -40,6 +40,7 @@
         "data": {
           "notify_enabled": "Send notifications",
           "notify_target": "Notification service",
+          "live_activity": "Live Activity on the lock screen while cooking (iPhone / Android 16)",
           "notify_apart": "One message per basket when they finish at different times",
           "notify_together": "One message when both finish together (or only one basket is used)",
           "notify_tolerance": "Finish times closer than this count as together",
@@ -47,7 +48,8 @@
           "notify_basket_2": "Notify for basket 2"
         },
         "data_description": {
-          "notify_target": "A notify action such as notify.mobile_app_my_phone or a notify group. Empty: a message in the Home Assistant sidebar."
+          "notify_target": "A notify action such as notify.mobile_app_my_phone or a notify group. Empty: a message in the Home Assistant sidebar.",
+          "live_activity": "One activity per basket (one shared for Sync, Match and whole basket) with countdown and progress. When done it turns green with a sound and replaces the push notification. Needs a notify service of the Home Assistant app as target (iOS 17.2+, Android 16+)."
         }
       }
     }

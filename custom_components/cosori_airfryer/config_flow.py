@@ -31,6 +31,7 @@ from pyvesync.utils.errors import VeSyncError, VeSyncLoginError
 
 from .const import (
     CONF_COUNTRY_CODE,
+    CONF_LIVE_ACTIVITY,
     CONF_NOTIFY_APART,
     CONF_NOTIFY_BASKET_1,
     CONF_NOTIFY_BASKET_2,
@@ -39,6 +40,7 @@ from .const import (
     CONF_NOTIFY_TOGETHER,
     CONF_NOTIFY_TOLERANCE,
     DEFAULT_COUNTRY_CODE,
+    DEFAULT_LIVE_ACTIVITY,
     DEFAULT_NOTIFY_APART,
     DEFAULT_NOTIFY_BASKET,
     DEFAULT_NOTIFY_ENABLED,
@@ -191,6 +193,10 @@ class CosoriOptionsFlow(OptionsFlow):
                     CONF_NOTIFY_TARGET,
                     default=o.get(CONF_NOTIFY_TARGET, ""),
                 ): TextSelector(),
+                vol.Required(
+                    CONF_LIVE_ACTIVITY,
+                    default=o.get(CONF_LIVE_ACTIVITY, DEFAULT_LIVE_ACTIVITY),
+                ): BooleanSelector(),
                 vol.Required(
                     CONF_NOTIFY_APART,
                     default=o.get(CONF_NOTIFY_APART, DEFAULT_NOTIFY_APART),

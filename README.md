@@ -85,6 +85,17 @@ Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Tex
 
 *Illustrationen der Meldungen und des Dialogs (Beispieltexte der Integration).*
 
+### Live-Aktivität auf dem Sperrbildschirm
+
+Mit **„Live-Aktivität auf dem Sperrbildschirm“** in denselben Einstellungen zeigt das iPhone (iOS 17.2+, HA-App mit Live-Aktivitäten) bzw. Android 16 während des Garens eine Live-Aktivität:
+
+- **pro Korb** eine eigene, bei **Sync, Match oder ganzem Korb** eine gemeinsame („Korb 1 + 2“)
+- Programm, Temperatur und Status („gart“, „wartet“, „Korb raus“), **Countdown** bis „fertig um“ und **Fortschrittsbalken**
+- am Ende wird sie **grün mit Ton** („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) und verschwindet nach 10 Minuten; diese Meldung ersetzt dann die normale Push-Meldung
+- von Hand beendet → sie verschwindet sofort
+
+Ziel ist der Benachrichtigungsdienst von oben; er muss ein Notify-Dienst der Home-Assistant-App sein (`notify.mobile_app_…` oder eine Notify-Gruppe aus solchen). Aktualisiert wird nur bei Änderungen bzw. höchstens einmal pro Minute für den Balken – iOS drosselt häufigere Updates.
+
 ## Dashboard-Karte
 
 Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
@@ -144,4 +155,4 @@ actions:
 
 ## English
 
-Cloud integration (VeSync account, via pyvesync ≥ 3.5.1) for Cosori air fryers, with full support for the dual-basket **Dual Blaze TwinFry (CAF-TF101S)**: per-basket status, remaining time, finish time, program and settings; start (basket 1, basket 2, whole basket, both in sync) with program/temperature/time; end per basket or all. Services `cosori_airfryer.start_cooking` and `cosori_airfryer.end_cooking`. Install via HACS custom repository, then add *Cosori Airfryer* and log in with your VeSync account.
+Cloud integration (VeSync account, via pyvesync ≥ 3.5.1) for Cosori air fryers, with full support for the dual-basket **Dual Blaze TwinFry (CAF-TF101S)**: per-basket status, remaining time, finish time, program and settings; start (basket 1, basket 2, whole basket, both in sync) with program/temperature/time; end per basket or all. Services `cosori_airfryer.start_cooking` and `cosori_airfryer.end_cooking`. Optional push notifications per basket and a Live Activity (iOS 17.2+ / Android 16) per basket with countdown and progress, configurable in the integration options. Install via HACS custom repository, then add *Cosori Airfryer* and log in with your VeSync account.

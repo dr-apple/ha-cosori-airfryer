@@ -40,6 +40,7 @@
         "data": {
           "notify_enabled": "Benachrichtigungen senden",
           "notify_target": "Benachrichtigungsdienst",
+          "live_activity": "Live-Aktivität auf dem Sperrbildschirm während des Garens (iPhone / Android 16)",
           "notify_apart": "Eine Meldung pro Korb, wenn sie zu unterschiedlichen Zeiten fertig werden",
           "notify_together": "Eine Meldung, wenn beide gleichzeitig fertig werden (oder nur ein Korb läuft)",
           "notify_tolerance": "Fertigzeiten näher als dies gelten als gleichzeitig",
@@ -47,7 +48,8 @@
           "notify_basket_2": "Für Korb 2 melden"
         },
         "data_description": {
-          "notify_target": "Ein Notify-Dienst wie notify.mobile_app_mein_handy oder eine Notify-Gruppe. Leer: Meldung in der Home-Assistant-Seitenleiste."
+          "notify_target": "Ein Notify-Dienst wie notify.mobile_app_mein_handy oder eine Notify-Gruppe. Leer: Meldung in der Home-Assistant-Seitenleiste.",
+          "live_activity": "Pro Korb eine Aktivität (bei Sync, Match und ganzem Korb eine gemeinsame) mit Countdown und Fortschritt. Am Ende wird sie grün mit Ton und ersetzt die Push-Meldung. Braucht als Ziel einen Notify-Dienst der Home-Assistant-App (iOS 17.2+, Android 16+)."
         }
       }
     }
