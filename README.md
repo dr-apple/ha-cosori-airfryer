@@ -1,148 +1,170 @@
-# Cosori Airfryer für Home Assistant
+# Cosori Airfryer for Home Assistant
+
+**English** · [Deutsch](README.de.md)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 
-Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut und getestet für die **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** mit zwei Körben. Andere Cosori-Fritteusen, die [pyvesync](https://github.com/webdjoe/pyvesync) kennt (CAF-TF102S, CAF-DC111S, CS137/CS158, TurboBlaze, Dual Blaze), funktionieren mit derselben Integration.
+![Cosori Airfryer for Home Assistant](docs/images/banner.svg)
 
-> Die Fritteuse hat keine lokale Schnittstelle; sie spricht nur mit der VeSync-Cloud. Die Integration nutzt deshalb dein VeSync-Konto (Cloud-Polling: 15 s während des Garens, sonst 60 s).
+Integration for Cosori air fryers from the **VeSync app**. It was built and tested for the **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** with two baskets. Other Cosori air fryers that [pyvesync](https://github.com/webdjoe/pyvesync) supports (CAF-TF102S, CAF-DC111S, CS137/CS158, TurboBlaze, Dual Blaze) work with the same integration.
 
-![Dashboard-Karte beim Garen mit Sync](docs/images/garen-sync.png)
+> The air fryer has no local interface; it only talks to the VeSync cloud. The integration therefore uses your VeSync account (cloud polling: every 15 s while cooking, otherwise every 60 s).
 
-*English summary below.*
+![Dashboard card while cooking in Sync mode](docs/images/garen-sync.png)
 
-## Einrichtung
+## How it works
 
-1. HACS → Benutzerdefinierte Repositories → `https://github.com/dr-apple/ha-cosori-airfryer` (Typ *Integration*) hinzufügen und installieren.
-2. Home Assistant neu starten.
-3. Einstellungen → Geräte & Dienste → *Integration hinzufügen* → **Cosori Airfryer**, mit E-Mail und Passwort aus der VeSync-App anmelden (Ländercode z. B. `DE`).
+![Air fryer → VeSync cloud → Home Assistant → phone](docs/images/how-it-works.svg)
 
-## Entitäten (TwinFry)
+## Contents
 
-| Entität | Beschreibung |
+- [Setup](#setup) · [Entities](#entities-twinfry) · [Schedule](#schedule-start-later) · [Push & Live Activity](#push-notifications-per-basket) · [Dashboard card](#dashboard-card) · [Services & examples](#services) · [Troubleshooting](#troubleshooting)
+
+## Setup
+
+1. HACS → Custom repositories → add `https://github.com/dr-apple/ha-cosori-airfryer` (type *Integration*) and install it.
+2. Restart Home Assistant.
+3. Settings → Devices & services → *Add integration* → **Cosori Airfryer**, sign in with the e-mail and password of your VeSync app (country code e.g. `DE`, `US`).
+
+## Entities (TwinFry)
+
+| Entity | Description |
 |---|---|
-| `sensor.…_korb_1_status` / `korb_2_status` | Bereit, Gart, Pausiert, Korb herausgezogen, Fertig, Wartet (Sync) … |
-| `sensor.…_korb_N_restzeit` | Restzeit bis zum Ende (inkl. Sync-Wartezeit) |
-| `sensor.…_korb_N_fertig_um` | Uhrzeit, zu der der Korb fertig ist |
-| `sensor.…_korb_N_programm` | Heißluft, Braten, Backen, Grillen, Aufwärmen, Trocknen |
-| `sensor.…_korb_N_solltemperatur` / `eingestellte_garzeit` | aktuelle Einstellung |
-| `binary_sensor.…_korb_N_gart` | an, solange der Korb heizt/gart |
-| `sensor.…_aktiver_korb` | Korb 1, Korb 2, Ganzer Korb, Beide (Sync) |
-| `binary_sensor.…_cloud_verbindung` | Fritteuse in der VeSync-Cloud online |
-| `select.…_start_korb` („Korb“) | Korb, der bearbeitet/gestartet wird: Korb 1 (links), Korb 2 (rechts), Ganzer Korb |
-| `select.…_start_programm` / `number.…_start_temperatur` / `number.…_start_garzeit` | Einstellungen **des gewählten Korbs** (jeder Korb hat eigene, sie bleiben über Neustarts erhalten); Programmwechsel setzt die App-Standardwerte |
-| `switch.…_sync` | **Sync**: jeder Korb mit eigenen Einstellungen, beide werden gleichzeitig fertig |
-| `switch.…_match` | **Match**: Korb 2 übernimmt die Einstellungen von Korb 1 |
-| `button.…_garen_starten` | startet mit den obigen Einstellungen |
-| `button.…_korb_1_beenden` / `korb_2_beenden` / `alles_beenden` | beendet den Garvorgang |
+| `sensor.…_korb_1_status` / `korb_2_status` | Ready, cooking, paused, basket pulled out, done, waiting (Sync) … |
+| `sensor.…_korb_N_restzeit` | Remaining time (incl. Sync waiting time) |
+| `sensor.…_korb_N_fertig_um` | Time of day the basket will be done |
+| `sensor.…_korb_N_programm` | Air fry, roast, bake, grill, reheat, dry |
+| `sensor.…_korb_N_solltemperatur` / `eingestellte_garzeit` | Current setting |
+| `binary_sensor.…_korb_N_gart` | On while the basket is heating/cooking |
+| `sensor.…_aktiver_korb` | Basket 1, basket 2, whole basket, both (Sync) |
+| `binary_sensor.…_cloud_verbindung` | Air fryer online in the VeSync cloud |
+| `select.…_start_korb` ("Basket") | Basket being edited/started: basket 1 (left), basket 2 (right), whole basket |
+| `select.…_start_programm` / `number.…_start_temperatur` / `number.…_start_garzeit` | Settings **of the selected basket** (each basket keeps its own, they survive restarts); changing the program loads the app's default values |
+| `switch.…_sync` | **Sync**: each basket with its own settings, both finish at the same time |
+| `switch.…_match` | **Match**: basket 2 copies the settings of basket 1 |
+| `button.…_garen_starten` | Starts cooking with the settings above |
+| `button.…_korb_1_beenden` / `korb_2_beenden` / `alles_beenden` | Ends cooking |
 
-Programme und Grenzen beim CAF-TF101S:
+The entity IDs shown are the ones created with a German Home Assistant; the friendly names follow your Home Assistant language.
 
-| Programm | Temperatur | Zeit |
+Programs and limits of the CAF-TF101S:
+
+| Program | Temperature | Time |
 |---|---|---|
-| Heißluft (`airfry`) | 120–205 °C | 1–60 min |
-| Braten (`roast`) | 120–205 °C | 1–240 min |
-| Backen (`bake`) | 80–205 °C | 1–240 min |
-| Grillen (`grill`) | 205–240 °C | 1–30 min |
-| Aufwärmen (`reheat`) | 40–205 °C | 1–60 min |
-| Trocknen (`dry`) | 35–95 °C | 30 min–48 h (30-min-Schritte) |
+| Air fry (`airfry`) | 120–205 °C | 1–60 min |
+| Roast (`roast`) | 120–205 °C | 1–240 min |
+| Bake (`bake`) | 80–205 °C | 1–240 min |
+| Grill (`grill`) | 205–240 °C | 1–30 min |
+| Reheat (`reheat`) | 40–205 °C | 1–60 min |
+| Dry (`dry`) | 35–95 °C | 30 min–48 h (30-min steps) |
 
-Pausieren geht beim TwinFry nicht über die Cloud – Korb herausziehen pausiert, wieder einschieben setzt fort (Status „Korb herausgezogen“).
-Ohne Sync/Match startet „Garen starten“ nur den gewählten Korb. Sync und Match nutzen denselben `startMultiCook`-Befehl, den pyvesync am CAF-DC111S verifiziert hat; die Integration schaltet ihn für die TwinFry frei.
+The TwinFry cannot be paused through the cloud – pulling a basket out pauses it, pushing it back in resumes (status "basket pulled out").
+Without Sync/Match, "Start cooking" only starts the selected basket. Sync and Match use the same `startMultiCook` command that pyvesync verified on the CAF-DC111S; the integration enables it for the TwinFry.
 
-## Zeitplan (später starten)
+## Schedule (start later)
 
-Die TwinFry kennt über die Cloud keinen Startzeitpunkt, deshalb plant Home Assistant den Start:
+The TwinFry has no start time in the cloud API, so Home Assistant schedules the start:
 
-| Entität | Beschreibung |
+| Entity | Description |
 |---|---|
-| `datetime.…_geplante_zeit` | Uhrzeit des Plans (Standard: nächster Tag 09:00) |
-| `select.…_geplante_zeit_ist` | **Startzeit** oder **Fertig-Zeit** (dann wird die Garzeit abgezogen) |
-| `switch.…_zeitplan_aktiv` | einschalten = planen; die aktuellen Einstellungen (Korb, Programm, Sync/Match …) werden dabei eingefroren |
-| `sensor.…_geplanter_start` | wann tatsächlich gestartet wird |
+| `datetime.…_geplante_zeit` | Time of the plan (default: next day 09:00) |
+| `select.…_geplante_zeit_ist` | **Start time** or **finish time** (the cooking time is then subtracted) |
+| `switch.…_zeitplan_aktiv` | Turn on = schedule; the current settings (basket, program, Sync/Match …) are frozen |
+| `sensor.…_geplanter_start` | When it will actually start |
 
-Der Plan übersteht Neustarts. Verpasst HA den Start um mehr als 10 Minuten, wird er verworfen und eine Benachrichtigung erstellt. Dienste: `cosori_airfryer.schedule_start` (`time`, `type: start|finish`) und `cosori_airfryer.cancel_schedule`.
+The plan survives restarts. If HA misses the start by more than 10 minutes, it is discarded and a notification is created. Services: `cosori_airfryer.schedule_start` (`time`, `type: start|finish`) and `cosori_airfryer.cancel_schedule`.
 
-> Lebensmittel, die stundenlang im Korb warten, bitte entsprechend wählen (Kühlkette).
+> Choose food that can safely wait in the basket for hours (cold chain).
 
-## Push-Benachrichtigungen pro Korb
+## Push notifications per basket
 
-*Einstellungen → Geräte & Dienste → Cosori Airfryer → Konfigurieren.* Alles ist dort einstellbar (auch die [Live-Aktivität](#live-aktivität-auf-dem-sperrbildschirm)):
+*Settings → Devices & services → Cosori Airfryer → Configure.* Everything is set there (including the [Live Activity](#live-activity-on-the-lock-screen)):
 
-| Einstellung | Bedeutung |
+| Option | Meaning |
 |---|---|
-| Benachrichtigungen senden | Hauptschalter (Standard: aus) |
-| Benachrichtigungsdienst | z. B. `notify.mobile_app_mein_handy` oder eine Notify-Gruppe; leer = Meldung in der HA-Seitenleiste |
-| Eine Meldung pro Korb … | Werden die Körbe zu **unterschiedlichen Zeiten** fertig, meldet sich jeder Korb einzeln („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) |
-| Eine Meldung, wenn beide gleichzeitig fertig werden | eine gemeinsame Meldung („Beide Körbe sind fertig.“), auch wenn nur ein Korb benutzt wurde |
-| Toleranz (min) | liegen die Fertigzeiten näher beieinander, gelten sie als gleichzeitig (Standard 1) |
-| Für Korb 1 / Korb 2 melden | pro Korb abschaltbar |
+| Send notifications | Main switch (default: off) |
+| Notification service | e.g. `notify.mobile_app_my_phone` or a notify group; empty = notification in the HA sidebar |
+| One message per basket … | If the baskets finish at **different times**, each basket reports separately ("Basket 1 is done. Basket 2 still needs 20 min.") |
+| One message when both finish together | One combined message ("Both baskets are done."), also if only one basket was used |
+| Tolerance (min) | Finish times closer than this count as simultaneous (default 1) |
+| Notify for basket 1 / basket 2 | Can be turned off per basket |
 
-Von Hand beendete Körbe (Taste „beenden“) lösen keine Meldung aus. Die Texte sind Deutsch oder Englisch (je nach HA-Sprache).
+Baskets ended by hand ("end" button) do not send a message. Texts are German or English, depending on the HA language.
 
-| Zeiten laufen auseinander | Gleichzeitig fertig | Einstellungen |
+| Times differ | Done together | Options |
 |---|---|---|
-| <img src="docs/images/push-auseinander.png" alt="Zwei Meldungen, eine pro Korb" width="300"> | <img src="docs/images/push-gleichzeitig.png" alt="Eine gemeinsame Meldung" width="300"> | <img src="docs/images/push-einstellungen.png" alt="Einstellungsdialog" width="300"> |
+| <img src="docs/images/push-auseinander.png" alt="Two messages, one per basket" width="300"> | <img src="docs/images/push-gleichzeitig.png" alt="One combined message" width="300"> | <img src="docs/images/push-einstellungen.png" alt="Options dialog" width="300"> |
 
-*Illustrationen der Meldungen und des Dialogs (Beispieltexte der Integration).*
+*Illustrations of the messages and the dialog (sample texts of the integration, German UI).*
 
-### Live-Aktivität auf dem Sperrbildschirm
+### Live Activity on the lock screen
 
-Mit **„Live-Aktivität auf dem Sperrbildschirm“** in denselben Einstellungen zeigt das iPhone (iOS 17.2+, HA-App mit Live-Aktivitäten) bzw. Android 16 während des Garens eine Live-Aktivität:
+With **"Live Activity on the lock screen"** in the same options, the iPhone (iOS 17.2+, HA app with Live Activities) or Android 16 shows a Live Activity while cooking:
 
-- **pro Korb** eine eigene, bei **Sync, Match oder ganzem Korb** eine gemeinsame („Korb 1 + 2“)
-- Programm, Temperatur und Status („gart“, „wartet“, „Korb raus“), **Countdown** bis „fertig um“ und **Fortschrittsbalken**
-- am Ende wird sie **grün mit Ton** („Korb 1 ist fertig. Korb 2 läuft noch 20 min.“) und verschwindet nach 10 Minuten; diese Meldung ersetzt dann die normale Push-Meldung
-- von Hand beendet → sie verschwindet sofort
+- **one per basket**; with **Sync, Match or whole basket** one shared activity ("Basket 1 + 2")
+- program, temperature and status ("cooking", "waiting", "basket out"), **countdown** to the finish time and a **progress bar**
+- at the end it turns **green with a sound** ("Basket 1 is done. Basket 2 still needs 20 min.") and disappears after 10 minutes; this replaces the normal push message
+- ended by hand → it disappears immediately
 
-![Live-Aktivität: ein Korb gart, Sync gemeinsam, fertig in Grün](docs/images/live-aktivitaet.png)
+![Live Activity: one basket cooking, Sync shared, done in green](docs/images/live-aktivitaet.png)
 
-Ziel ist der Benachrichtigungsdienst von oben; er muss ein Notify-Dienst der Home-Assistant-App sein (`notify.mobile_app_…` oder eine Notify-Gruppe aus solchen). Aktualisiert wird nur bei Änderungen bzw. höchstens einmal pro Minute für den Balken – iOS drosselt häufigere Updates.
+The target is the notification service from above; it must be a notify service of the Home Assistant app (`notify.mobile_app_…` or a notify group of those). Updates are only sent on changes, or at most once per minute for the progress bar – iOS throttles more frequent updates.
 
-## Dashboard-Karte
+## Dashboard card
 
-Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
+The integration ships its own card (loaded automatically, no resource needed): a photo of the TwinFry with a live control panel overlaid.
 
-![Bedienung: Korb 2 wählen, Backen, Temperatur und Zeit anpassen, starten](docs/images/bedienung.gif)
+![Usage: select basket 2, bake, adjust temperature and time, start](docs/images/bedienung.gif)
 
 ```yaml
 type: custom:cosori-airfryer-card
-# device_id: …   # optional, sonst die erste Cosori-Fritteuse
+# device_id: …   # optional, otherwise the first Cosori air fryer
 ```
 
-- **Display** zeigt beim Garen Temperatur und Restzeit (läuft sekündlich mit), sonst die Start-Einstellungen.
-- **Pfeile** links/rechts: Temperatur bzw. Garzeit ändern.
-- **Programme** (Heißluft … Trocknen) antippen = Programm wählen.
-- **KORB 1 / GANZER KORB / KORB 2** = Korb wählen (Pfeile und Programme gelten für diesen Korb); ein garender Korb leuchtet.
-- **SYNC / MATCH** wie am Gerät ein- und ausschalten (nochmal tippen = aus).
-- **⏰ Zeitplan** auf der Schublade: Start- oder Fertig-Zeit wählen und planen; ist ein Start geplant, zeigt die Taste „Startet morgen 09:00“.
-- **▶︎** startet (zweimal tippen zur Bestätigung), während des Garens beendet er den gewählten Korb. **⏻** beendet alles (zweimal tippen).
-- Auf der Schublade: Status, Restzeit, Fortschritt und „fertig um“ je Korb; antippen öffnet die Details.
-- Ist die Karte schmaler als 640 px (z. B. Handy oder Spaltenansicht), öffnet ein Tipp aufs Bild eine große Bedienansicht mit herangezoomtem Bedienfeld.
+- **Display** shows temperature and remaining time while cooking (ticks every second), otherwise the start settings.
+- **Arrows** left/right: change temperature or cooking time.
+- **Programs** (air fry … dry): tap to select.
+- **BASKET 1 / WHOLE BASKET / BASKET 2** select the basket (arrows and programs apply to it); a cooking basket lights up.
+- **SYNC / MATCH** toggle like on the device (tap again = off).
+- **⏰ Schedule** on the drawer: pick a start or finish time and schedule; with a scheduled start the button shows e.g. "Starts tomorrow 09:00".
+- **▶︎** starts (tap twice to confirm); while cooking it ends the selected basket. **⏻** ends everything (tap twice).
+- On the drawer: status, remaining time, progress and finish time per basket; tap to open the details.
+- If the card is narrower than 640 px (phone or column view), tapping the picture opens a large control view with a zoomed-in panel.
 
-| Bereit (Einstellungen pro Korb) | Start planen | Handy |
+| Ready (settings per basket) | Schedule a start | Phone |
 |---|---|---|
-| <img src="docs/images/karte.png" alt="Karte im Ruhezustand" width="340"> | <img src="docs/images/zeitplan.png" alt="Zeitplan-Fenster" width="340"> | <img src="docs/images/handy.png" alt="Bedienansicht auf dem Handy" width="180"> |
+| <img src="docs/images/karte.png" alt="Card at rest" width="340"> | <img src="docs/images/zeitplan.png" alt="Schedule dialog" width="340"> | <img src="docs/images/handy.png" alt="Control view on a phone" width="180"> |
 
-## Dienste
+## Services
 
 ```yaml
 action: cosori_airfryer.start_cooking
 data:
-  device_id: <Gerät>
+  device_id: <device>
   chamber: chamber_2      # chamber_1 | chamber_2 | whole | both
   mode: airfry            # airfry | roast | bake | grill | reheat | dry
-  temperature: 190        # °C, wird auf die Programmgrenzen begrenzt
-  duration: 15            # Minuten
+  temperature: 190        # °C, clamped to the program limits
+  duration: 15            # minutes
 ```
 
 ```yaml
 action: cosori_airfryer.end_cooking
 data:
-  device_id: <Gerät>
-  chamber: both           # beendet alles
+  device_id: <device>
+  chamber: both           # ends everything
 ```
 
-Beispiel-Benachrichtigung, wenn Korb 1 fertig ist:
+Schedule a start so that dinner is ready at 18:30:
+
+```yaml
+action: cosori_airfryer.schedule_start
+data:
+  device_id: <device>
+  time: "2026-12-24 18:30:00"
+  type: finish            # start | finish
+```
+
+Example automation – notify when basket 1 is done:
 
 ```yaml
 triggers:
@@ -152,9 +174,18 @@ triggers:
 actions:
   - action: notify.notify
     data:
-      message: Korb 1 ist fertig.
+      message: Basket 1 is done.
 ```
 
-## English
+## Troubleshooting
 
-Cloud integration (VeSync account, via pyvesync ≥ 3.5.1) for Cosori air fryers, with full support for the dual-basket **Dual Blaze TwinFry (CAF-TF101S)**: per-basket status, remaining time, finish time, program and settings; start (basket 1, basket 2, whole basket, both in sync) with program/temperature/time; end per basket or all. Services `cosori_airfryer.start_cooking` and `cosori_airfryer.end_cooking`. Optional push notifications per basket and a Live Activity (iOS 17.2+ / Android 16) per basket with countdown and progress, configurable in the integration options. Install via HACS custom repository, then add *Cosori Airfryer* and log in with your VeSync account.
+| Problem | Fix |
+|---|---|
+| Login fails | Use the e-mail/password of the VeSync app and check the country code (`DE`, `US` …). |
+| Entities "unavailable" | Check `binary_sensor.…_cloud_verbindung` – the air fryer must be online in the VeSync app. |
+| Values lag behind | Cloud polling: 15 s while cooking, 60 s otherwise. This is intentional. |
+| No push message | Turn on "Send notifications" in the options and enter a `notify.mobile_app_…` service. |
+
+## License
+
+MIT – see [LICENSE](LICENSE). Not an official Cosori or VeSync project.
