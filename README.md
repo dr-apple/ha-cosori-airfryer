@@ -12,13 +12,19 @@ Integration for Cosori air fryers from the **VeSync app**. It was built and test
 
 ![Dashboard card while cooking in Sync mode](docs/images/garen-sync.png)
 
+## Video
+
+[![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y)
+
+▶ **[Watch the video on YouTube](https://youtu.be/GIRd9z8hS3Y)** (German, 5 min – YouTube can auto-translate the subtitles): setup, dashboard card, Sync & Match, schedule and Live Activity on real hardware. · [Short (45 s)](https://youtube.com/shorts/IZ2gLCG4rW4)
+
 ## How it works
 
 ![Air fryer → VeSync cloud → Home Assistant → phone](docs/images/how-it-works.svg)
 
 ## Contents
 
-- [Setup](#setup) · [Entities](#entities-twinfry) · [Schedule](#schedule-start-later) · [Push & Live Activity](#push-notifications-per-basket) · [Dashboard card](#dashboard-card) · [Services & examples](#services) · [Troubleshooting](#troubleshooting)
+- [Video](#video) · [Setup](#setup) · [Entities](#entities-twinfry) · [Schedule](#schedule-start-later) · [Push & Live Activity](#push-notifications-per-basket) · [Dashboard card](#dashboard-card) · [Services & examples](#services) · [Troubleshooting](#troubleshooting)
 
 ## Setup
 

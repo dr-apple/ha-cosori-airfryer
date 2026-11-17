@@ -12,13 +12,19 @@ Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut un
 
 ![Dashboard-Karte beim Garen mit Sync](docs/images/garen-sync.png)
 
+## Video
+
+[![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y)
+
+▶ **[Video auf YouTube ansehen](https://youtu.be/GIRd9z8hS3Y)** (5 Min.): Installation, Dashboard-Karte, Sync & Match, Zeitplan und Live-Aktivität am echten Gerät. · [Short (45 s)](https://youtube.com/shorts/IZ2gLCG4rW4)
+
 ## So funktioniert's
 
 ![Fritteuse → VeSync-Cloud → Home Assistant → Handy](docs/images/how-it-works.svg)
 
 ## Inhalt
 
-- [Einrichtung](#einrichtung) · [Entitäten](#entitäten-twinfry) · [Zeitplan](#zeitplan-später-starten) · [Push & Live-Aktivität](#push-benachrichtigungen-pro-korb) · [Dashboard-Karte](#dashboard-karte) · [Dienste & Beispiele](#dienste) · [Fehlersuche](#fehlersuche)
+- [Video](#video) · [Einrichtung](#einrichtung) · [Entitäten](#entitäten-twinfry) · [Zeitplan](#zeitplan-später-starten) · [Push & Live-Aktivität](#push-benachrichtigungen-pro-korb) · [Dashboard-Karte](#dashboard-karte) · [Dienste & Beispiele](#dienste) · [Fehlersuche](#fehlersuche)
 
 ## Einrichtung
 
