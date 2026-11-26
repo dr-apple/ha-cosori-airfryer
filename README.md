@@ -6,7 +6,7 @@
 
 ![Cosori Airfryer for Home Assistant](docs/images/banner.svg)
 
-Integration for Cosori air fryers from the **VeSync app**. It was built and tested for the **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** with two baskets. Other Cosori air fryers that [pyvesync](https://github.com/webdjoe/pyvesync) supports (CAF-TF102S, CAF-DC111S, CS137/CS158, TurboBlaze, Dual Blaze) work with the same integration.
+Integration for Cosori air fryers from the **VeSync app**. It was built and tested for the **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** with two baskets. Other Cosori air fryers that [pyvesync](https://github.com/webdjoe/pyvesync) supports (CAF-TF102S, Turbo Tower Pro CAF-DC111S, CS137/CS158, CS358, TurboBlaze, Dual Blaze) work with the same integration and get their own drawing in the dashboard card.
 
 > The air fryer has no local interface; it only talks to the VeSync cloud. The integration therefore uses your VeSync account (cloud polling: every 15 s while cooking, otherwise every 60 s).
 
@@ -118,14 +118,31 @@ The target is the notification service from above; it must be a notify service o
 
 ## Dashboard card
 
-The integration ships its own card (loaded automatically, no resource needed): a photo of the TwinFry with a live control panel overlaid.
+The integration ships its own card (loaded automatically, no resource needed): a drawing of your air fryer with a live control panel overlaid. The model is detected automatically; every air fryer that pyvesync supports has its own drawing:
+
+![All supported models in the card](docs/images/modelle.jpg)
+
+| Drawing (`model:`) | Models |
+|---|---|
+| `twinfry` | Dual Blaze TwinFry CAF-TF101S, CAF-TF102S (two baskets, whole basket) |
+| `turbotower` | Turbo Tower Pro CAF-DC111S (two drawers stacked) |
+| `dualblaze` | Dual Blaze 6.8 Qt CAF-P583S |
+| `turboblaze` | TurboBlaze 6 Qt CAF-DC601S |
+| `cs158` | Smart / Pro / Pro Gen 2 5.8 Qt CS158, CS137 (and CS159/168/169) |
+| `cs358` | Pro II 5.8 Qt CS358 |
+
+On air fryers with one basket the basket, Sync and Match buttons are hidden. All drawings are my own artwork (no manufacturer photos).
 
 ![Usage: select basket 2, bake, adjust temperature and time, start](docs/images/bedienung.gif)
 
 ```yaml
 type: custom:cosori-airfryer-card
 # device_id: …   # optional, otherwise the first Cosori air fryer
+# model: turbotower   # optional, otherwise detected from the device
+# image: /local/my-fryer.jpg   # optional own picture (front view, 4:3)
 ```
+
+All options can also be set in the card editor (device, model, own picture).
 
 - **Display** shows temperature and remaining time while cooking (ticks every second), otherwise the start settings.
 - **Arrows** left/right: change temperature or cooking time.

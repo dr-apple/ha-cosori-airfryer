@@ -6,7 +6,7 @@
 
 ![Cosori Airfryer für Home Assistant](docs/images/banner.svg)
 
-Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut und getestet für die **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** mit zwei Körben. Andere Cosori-Fritteusen, die [pyvesync](https://github.com/webdjoe/pyvesync) kennt (CAF-TF102S, CAF-DC111S, CS137/CS158, TurboBlaze, Dual Blaze), funktionieren mit derselben Integration.
+Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut und getestet für die **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** mit zwei Körben. Andere Cosori-Fritteusen, die [pyvesync](https://github.com/webdjoe/pyvesync) kennt (CAF-TF102S, Turbo Tower Pro CAF-DC111S, CS137/CS158, CS358, TurboBlaze, Dual Blaze), funktionieren mit derselben Integration und bekommen in der Dashboard-Karte ihre eigene Zeichnung.
 
 > Die Fritteuse hat keine lokale Schnittstelle; sie spricht nur mit der VeSync-Cloud. Die Integration nutzt deshalb dein VeSync-Konto (Cloud-Polling: 15 s während des Garens, sonst 60 s).
 
@@ -116,14 +116,31 @@ Ziel ist der Benachrichtigungsdienst von oben; er muss ein Notify-Dienst der Hom
 
 ## Dashboard-Karte
 
-Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): das Foto der TwinFry mit live überlagertem Bedienfeld.
+Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Ressource nötig): eine Zeichnung deiner Fritteuse mit live überlagertem Bedienfeld. Das Modell wird automatisch erkannt; jede Fritteuse, die pyvesync kennt, hat ihre eigene Zeichnung:
+
+![Alle unterstützten Modelle in der Karte](docs/images/modelle.jpg)
+
+| Zeichnung (`model:`) | Modelle |
+|---|---|
+| `twinfry` | Dual Blaze TwinFry CAF-TF101S, CAF-TF102S (zwei Körbe, ganzer Korb) |
+| `turbotower` | Turbo Tower Pro CAF-DC111S (zwei Schubladen übereinander) |
+| `dualblaze` | Dual Blaze 6,8 Qt CAF-P583S |
+| `turboblaze` | TurboBlaze 6 Qt CAF-DC601S |
+| `cs158` | Smart / Pro / Pro Gen 2 5,8 Qt CS158, CS137 (auch CS159/168/169) |
+| `cs358` | Pro II 5,8 Qt CS358 |
+
+Bei Fritteusen mit einem Korb werden die Korb-, Sync- und Match-Tasten ausgeblendet. Alle Zeichnungen sind selbst gezeichnet (keine Herstellerfotos).
 
 ![Bedienung: Korb 2 wählen, Backen, Temperatur und Zeit anpassen, starten](docs/images/bedienung.gif)
 
 ```yaml
 type: custom:cosori-airfryer-card
 # device_id: …   # optional, sonst die erste Cosori-Fritteuse
+# model: turbotower   # optional, sonst aus dem Gerät erkannt
+# image: /local/meine-fritteuse.jpg   # optional eigenes Bild (Frontansicht, 4:3)
 ```
+
+Alle Optionen lassen sich auch im Karten-Editor einstellen (Fritteuse, Modell, eigenes Bild).
 
 - **Display** zeigt beim Garen Temperatur und Restzeit (läuft sekündlich mit), sonst die Start-Einstellungen.
 - **Pfeile** links/rechts: Temperatur bzw. Garzeit ändern.

@@ -1,9 +1,11 @@
 /*
- * Cosori Airfryer Card – the fryer photo with a live, touchable control panel.
+ * Cosori Airfryer Card – a drawing of the fryer with a live, touchable control panel.
  * Shipped and registered by the cosori_airfryer integration.
  *
  *   type: custom:cosori-airfryer-card
  *   device_id: <optional, first Cosori fryer if omitted>
+ *   model: <optional: twinfry | turbotower | dualblaze | turboblaze | cs158 | cs358; auto-detected>
+ *   image: <optional own picture URL; front view, 4:3>
  *
  * Wide card (>= 640 px): the photo itself is the remote control.
  * Narrow card: the photo shows the live state; a tap opens a large control
@@ -50,6 +52,39 @@ const T = {
   },
 };
 
+/*
+ * Model drawings (own artwork, frontend/models/*.svg, all on a 1081x802 canvas).
+ * panel: usable glass area [x, y, w, h] in % where the live control panel goes.
+ * chips: basket tile centres [x, y] in %, chipW: tile width in %, plan: schedule button.
+ */
+const SKINS = {
+  twinfry: { name: "Dual Blaze TwinFry (CAF-TF101S / TF102S)", panel: [27.5, 16, 46, 18.5], exact: true,
+             chips: [[21.5, 50.5], [78.5, 50.5]], one: [50, 50.5], chipW: 27, plan: [50, 58.5] },
+  turbotower: { name: "Turbo Tower Pro (CAF-DC111S)", panel: [32.4, 6.2, 35.3, 20.5],
+             chips: [[15, 45], [85, 45]], one: [15, 45], chipW: 26, plan: [85, 66] },
+  dualblaze: { name: "Dual Blaze 6.8 Qt (CAF-P583S)", panel: [29.8, 9.6, 40.4, 23],
+             chips: [[15, 45], [85, 45]], one: [14.5, 45], chipW: 25, plan: [14.5, 66] },
+  turboblaze: { name: "TurboBlaze 6 Qt (CAF-DC601S)", panel: [27.8, 15, 44.4, 22],
+             chips: [[11.5, 45], [88.5, 45]], one: [11.5, 45], chipW: 20.5, plan: [11.5, 66] },
+  cs158: { name: "Smart / Pro 5.8 Qt (CS158 / CS137)", panel: [31.6, 18, 36.8, 18.5],
+           chips: [[14, 45], [86, 45]], one: [14, 45], chipW: 24.5, plan: [14, 66] },
+  cs358: { name: "Pro II 5.8 Qt (CS358)", panel: [29.8, 15, 40.4, 22],
+           chips: [[13.5, 45], [86.5, 45]], one: [13.5, 45], chipW: 24, plan: [13.5, 66] },
+};
+const SKIN_BY_MODEL = [
+  [/^CAF-TF10/i, "twinfry"], [/^CAF-DC1[0-2]/i, "turbotower"], [/^CAF-P58/i, "dualblaze"],
+  [/^CAF-DC60/i, "turboblaze"], [/^CS358/i, "cs358"], [/^CS1[0-9]{2}/i, "cs158"],
+];
+/* where the TwinFry panel sits on its own drawing: with and without the basket row */
+const REF = { two: [27.5, 16, 46, 18.5], one: [27.5, 16, 46, 15] };
+
+/* skin for a card config / device model: explicit choice, else by model id, else by basket count */
+function skinFor(choice, modelId, dual) {
+  if (choice && SKINS[choice]) return choice;
+  for (const [re, id] of SKIN_BY_MODEL) if (re.test(modelId)) return id;
+  return dual ? "twinfry" : "cs158";
+}
+
 const MODES = ["airfry", "roast", "bake", "grill", "reheat", "dry"];
 const MODE_X = [35.3, 41.6, 47.8, 54.1, 60.2, 66.5];
 const ACTIVE = ["cooking", "heating", "hold", "cook_stop", "pull_out", "ready", "preheat_end", "preheat_stop", "appointing"];
@@ -60,9 +95,16 @@ const CSS = `
   ha-card { overflow:hidden; background: var(--ha-card-background, var(--card-background-color)); }
   .wrap { position:relative; width:100%; aspect-ratio:1081/802; container-type:inline-size; user-select:none; -webkit-user-select:none; }
   .wrap > img { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; transition:filter .4s; }
+  .wrap.photo > img { object-fit:cover; }
+  .panel { position:absolute; inset:0; transform-origin:0 0; pointer-events:none; }
+  .panel > * { pointer-events:auto; }
+  .panel > .ico { position:absolute; transform:translate(-50%,-50%); pointer-events:none; fill:none; stroke:#a2a2a8; stroke-width:2;
+                  stroke-linecap:round; stroke-linejoin:round; opacity:.9; }
+  .panel > .ico.pw { stroke:#d9722f; }
+  .panel > .ico .f { fill:#e6e6ea; stroke:none; }
   .wrap.off > img { filter: grayscale(.7) brightness(.6); }
   .compact .wrap { cursor:pointer; }
-  .compact .wrap .o, .compact .wrap .disp { pointer-events:none; }
+  .compact .wrap .o, .compact .wrap .disp, .compact .wrap .panel > * { pointer-events:none; }
   .o { position:absolute; transform:translate(-50%,-50%); cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .disp { position:absolute; left:37.9%; top:18.4%; width:25.9%; height:6%; display:flex; align-items:center; justify-content:space-between;
           padding:0 1.2cqw; box-sizing:border-box; cursor:pointer; }
@@ -88,7 +130,7 @@ const CSS = `
   .pill.dim { opacity:.35; cursor:default; }
   .chip { box-sizing:border-box; border-radius:14px; background:rgba(20,20,22,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
           border:1px solid rgba(255,255,255,.08); color:#f1f1f3; font: 500 14px/1.3 system-ui,-apple-system,sans-serif; cursor:pointer; padding:10px 12px; }
-  .wrap .chip { position:absolute; transform:translate(-50%,-50%); top:50.5%; width:27%; padding:1.1cqw 1.4cqw; border-radius:1.6cqw;
+  .wrap .chip { position:absolute; transform:translate(-50%,-50%); width:27%; padding:1.1cqw 1.4cqw; border-radius:1.6cqw;
                 font-size:1.55cqw; border-width:.12cqw; }
   .chip .h { display:flex; justify-content:space-between; align-items:center; font-weight:700; gap:.5em; }
   .chip .s { color:#bdbdc2; font-size:.9em; white-space:nowrap; }
@@ -141,37 +183,83 @@ const CSS = `
   @keyframes armed { from { box-shadow:0 0 .4cqw rgba(255,80,60,.5) } to { box-shadow:0 0 1.8cqw rgba(255,80,60,1) } }
 `;
 
-function panelHTML(withChips) {
+/* touch icons printed on the TwinFry glass, drawn for the other models */
+const ICONS = (z) => `
+  <svg class="ico" style="${z(34.9, 21.1)};width:2.2cqw" viewBox="0 0 20 30"><path d="M3 9 l7 -6 l7 6 M3 21 l7 6 l7 -6"/></svg>
+  <svg class="ico" style="${z(66.3, 21.1)};width:2.2cqw" viewBox="0 0 20 30"><path d="M3 9 l7 -6 l7 6 M3 21 l7 6 l7 -6"/></svg>
+  <svg class="ico pw" style="${z(30.1, 25.6)};width:2.6cqw" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12"/><path d="M14 8 V14 M9 10 A7 7 0 1 0 19 10"/></svg>
+  <svg class="ico" style="${z(71.2, 25.6)};width:2.8cqw" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12.5"/><path class="f" d="M8.5 8 L15 14 L8.5 20 Z M17 8 H19 V20 H17 Z M20.5 8 H22.5 V20 H20.5 Z"/></svg>`;
+
+/* transform that moves the TwinFry panel layout onto the glass area of a skin */
+function panelGeom(skin, dual) {
+  const ref = dual ? REF.two : REF.one;
+  const [px, py, pw, ph] = skin.panel;
+  if (skin.exact) return { s: 1, tx: 0, ty: 0, ref, rect: ref };
+  const s = Math.min(pw / ref[2], ph / ref[3]);
+  const cx = px + pw / 2, cy = py + ph / 2;
+  const tx = cx - s * (ref[0] + ref[2] / 2), ty = cy - s * (ref[1] + ref[3] / 2);
+  return { s, tx, ty, ref, rect: [tx + s * ref[0], ty + s * ref[1], s * ref[2], s * ref[3]] };
+}
+
+function panelHTML(withChips, skin, caps, image) {
   const z = (x, y) => `left:${x}%;top:${y}%`;
+  const g = panelGeom(skin, caps.dual);
+  const tf = g.s === 1 && !g.tx && !g.ty ? "" : `transform:translate(${g.tx}%,${g.ty}%) scale(${g.s})`;
+  const src = image || `${BASE}models/${skin.id}.svg${VER}`;
+  const cw = `width:${skin.chipW}%`;
+  const [c1, c2] = caps.dual ? skin.chips : [skin.one, skin.chips[1]];
   return `
-    <div class="wrap">
-      <img src="${BASE}airfryer.webp${VER}" alt="Cosori TwinFry">
+    <div class="wrap${image ? " photo" : ""}">
+      <img src="${src}" alt="${skin.name}">
+      <div class="panel" style="${tf}">
       <div class="disp" data-act="disp"><span class="tag" data-k="tag"></span>
         <span class="seg" data-k="temp"></span><span class="seg" data-k="time"></span></div>
       <div class="o arr" style="${z(34.9, 19.3)}" data-act="temp+"></div>
       <div class="o arr" style="${z(34.9, 22.9)}" data-act="temp-"></div>
       <div class="o arr" style="${z(66.3, 19.3)}" data-act="time+"></div>
       <div class="o arr" style="${z(66.3, 22.9)}" data-act="time-"></div>
+      ${skin.exact && !image ? "" : ICONS(z)}
       <div class="o btn" data-k="power" style="${z(30.1, 25.6)}" data-act="power"></div>
       <div class="o btn" data-k="play" style="${z(71.2, 25.6)}" data-act="play"></div>
-      <div class="o pill filled" data-k="p-sync" style="${z(43.9, 25.7)}" data-act="link:sync"></div>
-      <div class="o pill filled" data-k="p-match" style="${z(57.4, 25.7)}" data-act="link:match"></div>
+      <div class="o pill filled${caps.dual ? "" : " hidden"}" data-k="p-sync" style="${z(43.9, 25.7)}" data-act="link:sync"></div>
+      <div class="o pill filled${caps.dual ? "" : " hidden"}" data-k="p-match" style="${z(57.4, 25.7)}" data-act="link:match"></div>
       ${MODES.map((m, i) => `<div class="o lbl" data-k="m-${m}" style="${z(MODE_X[i], 29.2)}" data-act="mode:${m}"></div>`).join("")}
-      <div class="o pill" data-k="p-chamber_1" style="${z(30.5, 32.9)}" data-act="zone:chamber_1"></div>
-      <div class="o pill" data-k="p-whole" style="${z(50.8, 32.9)}" data-act="zone:whole"></div>
-      <div class="o pill" data-k="p-chamber_2" style="${z(70.9, 32.9)}" data-act="zone:chamber_2"></div>
-      ${withChips ? `<div class="chip" data-k="c1" style="left:21.5%" data-act="info:1"></div>
-      <div class="chip" data-k="c2" style="left:78.5%" data-act="info:2"></div>
+      <div class="o pill${caps.dual ? "" : " hidden"}" data-k="p-chamber_1" style="${z(30.5, 32.9)}" data-act="zone:chamber_1"></div>
+      <div class="o pill${caps.dual && caps.whole ? "" : " hidden"}" data-k="p-whole" style="${z(50.8, 32.9)}" data-act="zone:whole"></div>
+      <div class="o pill${caps.dual ? "" : " hidden"}" data-k="p-chamber_2" style="${z(70.9, 32.9)}" data-act="zone:chamber_2"></div>
+      </div>
+      ${withChips ? `<div class="chip" data-k="c1" style="${z(c1[0], c1[1])};${cw}" data-x="${c1[0]}" data-act="info:1"></div>
+      <div class="chip${caps.dual ? "" : " hidden"}" data-k="c2" style="${z(c2[0], c2[1])};${cw}" data-act="info:2"></div>
       <div class="hint hidden" data-k="hint"></div>
-      <div class="planbtn" data-k="planbtn" data-act="plan"></div>` : ""}
+      <div class="planbtn" data-k="planbtn" style="${z(skin.plan[0], skin.plan[1])}" data-act="plan"></div>` : ""}
     </div>`;
+}
+
+/* popup crop around the control panel: the TwinFry crop, moved like the panel */
+function zoomGeom(skin, dual) {
+  const g = panelGeom(skin, dual);
+  const base = [24.97, 13.01, 51.8, 23.07]; // x, y, w, h in % of the drawing (TwinFry)
+  const pad = dual ? 0 : 0.6;
+  const x = g.tx + g.s * base[0], y = g.ty + g.s * (base[1] - pad), w = g.s * base[2], h = g.s * (base[3] - (dual ? 0 : 3.2));
+  const aspect = (w * 1081) / (h * 802);
+  return { width: 10000 / w, left: (-x / w) * 100, top: (-y / h) * 100, aspect };
 }
 
 class CosoriAirfryerCard extends HTMLElement {
   setConfig(config) {
+    const old = JSON.stringify(this._config || {});
     this._config = config || {};
     this._armed = null;
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    if (this._built && old !== JSON.stringify(this._config)) {
+      this._built = false;
+      this._dev = null;
+      if (this._hass) this.hass = this._hass;
+    }
+  }
+
+  static getConfigElement() {
+    return document.createElement("cosori-airfryer-card-editor");
   }
 
   static getStubConfig() {
@@ -188,7 +276,12 @@ class CosoriAirfryerCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    const skin = this._skinId;
     this._resolve();
+    if (this._built && (skin !== this._skinId || this._capsKey !== JSON.stringify(this._caps))) {
+      this._ro?.disconnect();
+      this._built = false;
+    }
     if (!this._built) this._build();
     this._render();
   }
@@ -221,6 +314,17 @@ class CosoriAirfryerCard extends HTMLElement {
     this._dev = dev;
     this._e = {};
     for (const e of ents) if (e.device_id === dev && e.translation_key) this._e[e.translation_key] = e.entity_id;
+    const modelId = this._hass.devices?.[dev]?.model_id || "";
+    this._skinId = skinFor(this._config.model, modelId, !!this._e.status_chamber_2);
+  }
+
+  get _skin() {
+    return { id: this._skinId || "twinfry", ...SKINS[this._skinId || "twinfry"] };
+  }
+
+  get _caps() {
+    const opts = this._st("chamber")?.attributes?.options || [];
+    return { dual: !!this._e?.status_chamber_2, whole: opts.includes("whole") };
   }
 
   _st(key) {
@@ -259,7 +363,9 @@ class CosoriAirfryerCard extends HTMLElement {
 
   _build() {
     this._built = true;
-    this.shadowRoot.innerHTML = `<style>${CSS}</style><ha-card><div class="host">${panelHTML(true)}<div class="toast"></div></div></ha-card>`;
+    this._capsKey = JSON.stringify(this._caps);
+    this.shadowRoot.innerHTML = `<style>${CSS}</style><ha-card><div class="host">${panelHTML(true, this._skin, this._caps, this._config.image)}<div class="toast"></div></div></ha-card>`;
+    this._compact = undefined;
     this._card = this.shadowRoot.querySelector(".host");
     this._bindClicks(this._card, false);
     this._ro = new ResizeObserver(() => {
@@ -278,11 +384,12 @@ class CosoriAirfryerCard extends HTMLElement {
     const host = document.createElement("div");
     host.className = "cosori-airfryer-popup";
     const sr = host.attachShadow({ mode: "open" });
+    const zg = zoomGeom(this._skin, this._caps.dual);
     sr.innerHTML = `<style>${CSS}</style>
       <div class="pop"><div class="sheet">
         <button class="x" title="${this._t.close}">✕</button>
-        <div class="zoom">${panelHTML(false)}</div>
-        <div class="chips"><div class="chip" data-k="c1" data-act="info:1"></div><div class="chip" data-k="c2" data-act="info:2"></div></div>
+        <div class="zoom" style="aspect-ratio:${zg.aspect}">${panelHTML(false, this._skin, this._caps, this._config.image).replace('<div class="wrap', `<div style="width:${zg.width}%;left:${zg.left}%;top:${zg.top}%" class="wrap`)}</div>
+        <div class="chips"><div class="chip" data-k="c1" data-act="info:1"></div><div class="chip${this._caps.dual ? "" : " hidden"}" data-k="c2" data-act="info:2"></div></div>
         <div class="planbtn" data-k="planbtn" data-act="plan"></div>
         <div class="toast"></div>
       </div></div>`;
@@ -580,16 +687,16 @@ class CosoriAirfryerCard extends HTMLElement {
       const temp = this._val(`set_temperature_chamber_${focus}`);
       q("temp").innerHTML = `${temp && !isNaN(temp) ? Math.round(temp) : "---"}<small>°C</small>`;
       q("time").textContent = this._fmt(this._remaining(focus));
-      const zoneLbl = work === "whole" ? t.whole : work === "both" ? (this._link() === "match" ? t.match : t.sync) : focus === 1 ? t.zone1 : t.zone2;
+      const zoneLbl = !this._caps.dual ? "" : work === "whole" ? t.whole : work === "both" ? (this._link() === "match" ? t.match : t.sync) : focus === 1 ? t.zone1 : t.zone2;
       const run = RUNNING.includes(this._chState(focus));
-      tag.innerHTML = `${run ? '<span class="dot"></span>' : ""}${zoneLbl} · ${t.status[this._chState(focus)] || ""}`;
+      tag.innerHTML = `${run ? '<span class="dot"></span>' : ""}${zoneLbl ? zoneLbl + " · " : ""}${t.status[this._chState(focus)] || ""}`;
     } else {
       const temp = this._val("temperature");
       const dur = Number(this._val("duration"));
       q("temp").innerHTML = `${temp && !isNaN(temp) ? Math.round(temp) : "---"}<small>°C</small>`;
       q("time").textContent = isNaN(dur) ? "--:--" : dur >= 60 ? `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}:00` : `${String(dur).padStart(2, "0")}:00`;
       const lk = this._link();
-      tag.textContent = sel === "whole" ? t.whole : lk === "match" ? `${t.zone1} + ${t.zone2} · ${t.match}`
+      tag.textContent = !this._caps.dual ? "" : sel === "whole" ? t.whole : lk === "match" ? `${t.zone1} + ${t.zone2} · ${t.match}`
         : `${sel === "chamber_2" ? t.zone2 : t.zone1}${lk === "sync" ? " · " + t.sync : ""}`;
     }
 
@@ -645,14 +752,14 @@ class CosoriAirfryerCard extends HTMLElement {
       if (!c) continue;
       const st = this._chState(n);
       const act = this._isActive(n);
-      if (n === 2 && wholeBusy) {
+      if (n === 2 && (wholeBusy || !this._caps.dual)) {
         c.classList.add("hidden");
         continue;
       }
       c.classList.remove("hidden");
       c.classList.toggle("act", act);
-      if (inWrap && n === 1) c.style.left = wholeBusy ? "50%" : "21.5%";
-      const title = n === 1 && wholeBusy ? t.whole : `${t.basket} ${n}`;
+      if (inWrap && n === 1) c.style.left = `${wholeBusy ? this._skin.one[0] : c.dataset.x}%`;
+      const title = n === 1 && wholeBusy ? t.whole : this._caps.dual ? `${t.basket} ${n}` : t.basket;
       if (!act) {
         const cfg = this._cfg(n);
         const lk = this._link();
@@ -661,8 +768,8 @@ class CosoriAirfryerCard extends HTMLElement {
           ? `<div class="sub">${t.modesLong[cfg.mode] || ""} · ${cfg.temperature}°C · ${cfg.duration} min</div>` : "";
         c.innerHTML = `<div class="h"><span>${sel === "whole" && n === 1 ? t.whole : title}</span><span class="s">${t.status[st] || st}</span></div>${set}`;
         c.style.opacity = willRun || !cfg ? "1" : ".55";
-        if (inWrap && n === 1) c.style.left = sel === "whole" ? "50%" : "21.5%";
-        if (n === 2) c.classList.toggle("hidden", sel === "whole");
+        if (inWrap && n === 1) c.style.left = `${sel === "whole" ? this._skin.one[0] : c.dataset.x}%`;
+        if (n === 2) c.classList.toggle("hidden", sel === "whole" || !this._caps.dual);
         continue;
       }
       c.style.opacity = "1";
@@ -683,8 +790,61 @@ class CosoriAirfryerCard extends HTMLElement {
         <div class="bar"><i style="width:${pct}%"></i></div>`;
     }
     const chips = root.querySelector(".chips");
-    if (chips) chips.classList.toggle("one", wholeBusy || (!busy && sel === "whole"));
+    if (chips) chips.classList.toggle("one", !this._caps.dual || wholeBusy || (!busy && sel === "whole"));
   }
+}
+
+/* visual editor: fryer, model drawing, optional own photo */
+class CosoriAirfryerCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = { ...(config || {}) };
+    this._draw();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._draw();
+  }
+
+  get _de() {
+    return (this._hass?.locale?.language || this._hass?.language || "en").startsWith("de");
+  }
+
+  _draw() {
+    if (!this._hass || !this._config) return;
+    const de = this._de;
+    if (!this._form) {
+      this._form = document.createElement("ha-form");
+      this._form.computeLabel = (s) => ({
+        device_id: de ? "Fritteuse" : "Air fryer",
+        model: de ? "Modell (Bild)" : "Model (drawing)",
+        image: de ? "Eigenes Bild (URL, optional)" : "Own picture (URL, optional)",
+      })[s.name];
+      this._form.computeHelper = (s) => s.name === "model"
+        ? (de ? "Automatisch: wird aus dem VeSync-Modell erkannt." : "Automatic: detected from the VeSync model.")
+        : s.name === "image" ? (de ? "Frontansicht im Format 4:3, z. B. /local/fritteuse.jpg" : "Front view, 4:3, e.g. /local/fryer.jpg") : undefined;
+      this._form.addEventListener("value-changed", (ev) => {
+        const cfg = { ...this._config, ...ev.detail.value };
+        for (const k of ["device_id", "model", "image"]) if (!cfg[k] || cfg[k] === "auto") delete cfg[k];
+        this._config = cfg;
+        this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: cfg }, bubbles: true, composed: true }));
+      });
+      this.appendChild(this._form);
+    }
+    const options = [{ value: "auto", label: de ? "Automatisch" : "Automatic" },
+      ...Object.entries(SKINS).map(([id, sk]) => ({ value: id, label: sk.name }))];
+    this._form.hass = this._hass;
+    this._form.schema = [
+      { name: "device_id", selector: { device: { integration: "cosori_airfryer" } } },
+      { name: "model", selector: { select: { mode: "dropdown", options } } },
+      { name: "image", selector: { text: {} } },
+    ];
+    this._form.data = { model: "auto", ...this._config };
+  }
+}
+
+if (!customElements.get("cosori-airfryer-card-editor")) {
+  customElements.define("cosori-airfryer-card-editor", CosoriAirfryerCardEditor);
 }
 
 if (!customElements.get("cosori-airfryer-card")) {
@@ -693,7 +853,7 @@ if (!customElements.get("cosori-airfryer-card")) {
   window.customCards.push({
     type: "cosori-airfryer-card",
     name: "Cosori Airfryer",
-    description: "TwinFry mit Live-Bedienfeld im Foto",
-    preview: false,
+    description: "Cosori air fryer with a live control panel (TwinFry, Turbo Tower, Dual Blaze, TurboBlaze, Smart/Pro)",
+    preview: true,
   });
 }
