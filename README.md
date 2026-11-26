@@ -14,9 +14,12 @@ Integration for Cosori air fryers from the **VeSync app**. It was built and test
 
 ## Video
 
-[![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y)
+| The integration | Update 0.7: every model |
+|---|---|
+| [![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y) | [![Video: every Cosori air fryer in Home Assistant – update 0.7 (YouTube)](docs/images/video-update.jpg)](https://youtu.be/Bi9EvaMAm6U) |
+| ▶ **[Watch on YouTube](https://youtu.be/GIRd9z8hS3Y)** (5 min): setup, dashboard card, Sync & Match, schedule and Live Activity on real hardware. · [Short](https://youtube.com/shorts/IZ2gLCG4rW4) | ▶ **[Watch on YouTube](https://youtu.be/Bi9EvaMAm6U)** (2 min): all models in the card, model picker in the card editor, Turbo Tower Pro Smart. · [Short](https://youtube.com/shorts/n0ahAuP3Y5Q) |
 
-▶ **[Watch the video on YouTube](https://youtu.be/GIRd9z8hS3Y)** (German, 5 min – YouTube can auto-translate the subtitles): setup, dashboard card, Sync & Match, schedule and Live Activity on real hardware. · [Short (45 s)](https://youtube.com/shorts/IZ2gLCG4rW4)
+Both videos are in German – YouTube can auto-translate the subtitles.
 
 ## How it works
 

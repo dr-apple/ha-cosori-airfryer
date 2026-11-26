@@ -14,9 +14,10 @@ Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut un
 
 ## Video
 
-[![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y)
-
-▶ **[Video auf YouTube ansehen](https://youtu.be/GIRd9z8hS3Y)** (5 Min.): Installation, Dashboard-Karte, Sync & Match, Zeitplan und Live-Aktivität am echten Gerät. · [Short (45 s)](https://youtube.com/shorts/IZ2gLCG4rW4)
+| Die Integration | Update 0.7: jedes Modell |
+|---|---|
+| [![Video: Cosori TwinFry in Home Assistant (YouTube)](docs/images/video.jpg)](https://youtu.be/GIRd9z8hS3Y) | [![Video: Jede Cosori-Fritteuse in Home Assistant – Update 0.7 (YouTube)](docs/images/video-update.jpg)](https://youtu.be/Bi9EvaMAm6U) |
+| ▶ **[Auf YouTube ansehen](https://youtu.be/GIRd9z8hS3Y)** (5 Min.): Installation, Dashboard-Karte, Sync & Match, Zeitplan und Live-Aktivität am echten Gerät. · [Short](https://youtube.com/shorts/IZ2gLCG4rW4) | ▶ **[Auf YouTube ansehen](https://youtu.be/Bi9EvaMAm6U)** (2 Min.): alle Modelle in der Karte, Modellauswahl im Karten-Editor, Turbo Tower Pro Smart. · [Short](https://youtube.com/shorts/n0ahAuP3Y5Q) |
 
 ## So funktioniert's
 
