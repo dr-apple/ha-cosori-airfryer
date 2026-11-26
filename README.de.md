@@ -6,7 +6,7 @@
 
 ![Cosori Airfryer für Home Assistant](docs/images/banner.svg)
 
-Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut und getestet für die **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** mit zwei Körben. Andere Cosori-Fritteusen, die [pyvesync](https://github.com/webdjoe/pyvesync) kennt (CAF-TF102S, Turbo Tower Pro CAF-DC111S, CS137/CS158, CS358, TurboBlaze, Dual Blaze), funktionieren mit derselben Integration und bekommen in der Dashboard-Karte ihre eigene Zeichnung.
+Integration für Cosori-Heißluftfritteusen aus der **VeSync-App** – gebaut und getestet für die **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** mit zwei Körben. Andere Cosori-Fritteusen, die [pyvesync](https://github.com/webdjoe/pyvesync) kennt (CAF-TF102S, Turbo Tower Pro Smart CAF-DC111S/DC113S/DC123S, CS137/CS158, CS358, TurboBlaze, Dual Blaze), funktionieren mit derselben Integration und bekommen in der Dashboard-Karte ihre eigene Zeichnung.
 
 > Die Fritteuse hat keine lokale Schnittstelle; sie spricht nur mit der VeSync-Cloud. Die Integration nutzt deshalb dein VeSync-Konto (Cloud-Polling: 15 s während des Garens, sonst 60 s).
 
@@ -123,7 +123,7 @@ Die Integration bringt eine eigene Karte mit (wird automatisch geladen, keine Re
 | Zeichnung (`model:`) | Modelle |
 |---|---|
 | `twinfry` | Dual Blaze TwinFry CAF-TF101S, CAF-TF102S (zwei Körbe, ganzer Korb) |
-| `turbotower` | Turbo Tower Pro CAF-DC111S (zwei Schubladen übereinander) |
+| `turbotower` | Turbo Tower Pro Smart CAF-DC111S, CAF-DC113S, CAF-DC123S (zwei Schubladen übereinander) |
 | `dualblaze` | Dual Blaze 6,8 Qt CAF-P583S |
 | `turboblaze` | TurboBlaze 6 Qt CAF-DC601S |
 | `cs158` | Smart / Pro / Pro Gen 2 5,8 Qt CS158, CS137 (auch CS159/168/169) |

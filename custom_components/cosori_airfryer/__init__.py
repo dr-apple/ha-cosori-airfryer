@@ -37,6 +37,35 @@ PLATFORMS = [
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+# Air fryers pyvesync does not list yet, mapped to the model they share the
+# firmware/API with: device type prefix -> a device type pyvesync knows.
+MODEL_ALIASES = {
+    # Turbo Tower Pro Smart variants (other colours / basket sizes).
+    "CAF-DC111S": "CAF-DC111S-AEU",
+    "CAF-DC113S": "CAF-DC111S-AEU",
+    "CAF-DC123S": "CAF-DC111S-AEU",
+}
+
+
+def _register_model_aliases() -> None:
+    """Let pyvesync create devices for the alias models.
+
+    pyvesync matches a device type exactly, or without its region suffix as a
+    substring of a known type, so adding the bare prefixes is enough.
+    """
+    try:
+        from pyvesync import device_map  # noqa: PLC0415
+    except ImportError:  # pragma: no cover
+        return
+    for prefix, known in MODEL_ALIASES.items():
+        for module in device_map.air_fryer_modules:
+            if known in module.dev_types and prefix not in module.dev_types:
+                module.dev_types.append(prefix)
+
+
+_register_model_aliases()
+
+
 FRONTEND_URL = f"/{DOMAIN}"
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 

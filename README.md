@@ -6,7 +6,7 @@
 
 ![Cosori Airfryer for Home Assistant](docs/images/banner.svg)
 
-Integration for Cosori air fryers from the **VeSync app**. It was built and tested for the **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** with two baskets. Other Cosori air fryers that [pyvesync](https://github.com/webdjoe/pyvesync) supports (CAF-TF102S, Turbo Tower Pro CAF-DC111S, CS137/CS158, CS358, TurboBlaze, Dual Blaze) work with the same integration and get their own drawing in the dashboard card.
+Integration for Cosori air fryers from the **VeSync app**. It was built and tested for the **Cosori Dual Blaze TwinFry 10 L (CAF-TF101S)** with two baskets. Other Cosori air fryers that [pyvesync](https://github.com/webdjoe/pyvesync) supports (CAF-TF102S, Turbo Tower Pro Smart CAF-DC111S/DC113S/DC123S, CS137/CS158, CS358, TurboBlaze, Dual Blaze) work with the same integration and get their own drawing in the dashboard card.
 
 > The air fryer has no local interface; it only talks to the VeSync cloud. The integration therefore uses your VeSync account (cloud polling: every 15 s while cooking, otherwise every 60 s).
 
@@ -125,7 +125,7 @@ The integration ships its own card (loaded automatically, no resource needed): a
 | Drawing (`model:`) | Models |
 |---|---|
 | `twinfry` | Dual Blaze TwinFry CAF-TF101S, CAF-TF102S (two baskets, whole basket) |
-| `turbotower` | Turbo Tower Pro CAF-DC111S (two drawers stacked) |
+| `turbotower` | Turbo Tower Pro Smart CAF-DC111S, CAF-DC113S, CAF-DC123S (two drawers stacked) |
 | `dualblaze` | Dual Blaze 6.8 Qt CAF-P583S |
 | `turboblaze` | TurboBlaze 6 Qt CAF-DC601S |
 | `cs158` | Smart / Pro / Pro Gen 2 5.8 Qt CS158, CS137 (and CS159/168/169) |

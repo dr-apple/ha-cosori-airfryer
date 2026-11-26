@@ -60,7 +60,7 @@ const T = {
 const SKINS = {
   twinfry: { name: "Dual Blaze TwinFry (CAF-TF101S / TF102S)", panel: [27.5, 16, 46, 18.5], exact: true,
              chips: [[21.5, 50.5], [78.5, 50.5]], one: [50, 50.5], chipW: 27, plan: [50, 58.5] },
-  turbotower: { name: "Turbo Tower Pro (CAF-DC111S)", panel: [32.4, 6.2, 35.3, 20.5],
+  turbotower: { name: "Turbo Tower Pro Smart (CAF-DC111S / DC113S / DC123S)", panel: [32.4, 6.2, 35.3, 20.5],
              chips: [[15, 45], [85, 45]], one: [15, 45], chipW: 26, plan: [85, 66] },
   dualblaze: { name: "Dual Blaze 6.8 Qt (CAF-P583S)", panel: [29.8, 9.6, 40.4, 23],
              chips: [[15, 45], [85, 45]], one: [14.5, 45], chipW: 25, plan: [14.5, 66] },
